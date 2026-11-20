@@ -1,0 +1,26 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="-200 -200 400 400" width="2048" height="2048">
+<defs>
+<linearGradient id="cu" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#f3a26a"/><stop offset=".45" stop-color="#d06a2f"/><stop offset="1" stop-color="#8e3f17"/></linearGradient>
+<linearGradient id="ag" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#ffffff"/><stop offset=".5" stop-color="#b9bec5"/><stop offset=".55" stop-color="#8d939b"/><stop offset="1" stop-color="#e3e6ea"/></linearGradient>
+<linearGradient id="ring" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#e9935a"/><stop offset=".5" stop-color="#5a2a12"/><stop offset="1" stop-color="#c9773f"/></linearGradient>
+<radialGradient id="bg" cx=".5" cy=".38" r=".7"><stop offset="0" stop-color="#26262a"/><stop offset="1" stop-color="#0a0a0b"/></radialGradient>
+</defs>
+<circle r="196" fill="url(#ring)"/><circle r="186" fill="url(#bg)"/><circle r="178" fill="none" stroke="#ffffff" stroke-opacity=".06" stroke-width="2"/>
+<g transform="translate(0,-62) scale(.95)">
+<path d="M-60.6,30 V-35 L0,-70 L60.6,-35 V35 L0,70" fill="none" stroke="url(#ag)" stroke-width="12" stroke-linejoin="miter"/>
+<path d="M33,-30 H-18 L-30,-18 V-8 L-18,4 H18 L30,16 V26 L18,38 H-33" fill="none" stroke="url(#cu)" stroke-width="15" stroke-linejoin="miter"/>
+<path d="M-62,70 L-42,42 L-22,70 Z" fill="url(#ag)"/>
+</g>
+<g fill="none" stroke="url(#ag)" stroke-width="8" stroke-linejoin="miter" transform="translate(-135,56) scale(.82)">
+<path d="M60,4 H12 L4,12 V14 L10,20 H54 L60,26 V28 L52,36 H4"/>
+<path transform="translate(66,0)" d="M12,4 H52 L60,12 V28 L52,36 H12 L4,28 V12 Z" stroke="url(#cu)"/>
+<path transform="translate(132,0)" d="M4,40 V5 L60,35 V0"/>
+<path transform="translate(198,0)" d="M60,4 H4 V36 H60 M4,20 H50"/>
+<path transform="translate(264,0)" d="M60,4 H12 L4,12 V28 L12,36 H60"/>
+</g>
+<g fill="#9aa0a7" font-family="Montserrat, Arial" font-weight="700" text-anchor="middle">
+<text y="38" font-size="13" letter-spacing="9">GRUPO</text>
+<text y="124" font-size="15" letter-spacing="5" fill="#d9874f">REMODELACIÓN</text>
+</g>
+<path d="M-150,33 H-48 M48,33 H150 M-150,108 H150" stroke="#9aa0a7" stroke-opacity=".5" stroke-width="1.5"/>
+</svg>
