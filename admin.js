@@ -93,11 +93,11 @@ function leadsCard() {
 }
 function project() {
   const u = unseen(cur), p = cur.project;
-  const tabs = { dash: cDash, money: cMoney, pays: cPays, changes: cChanges, progress: cProgress, materials: cMats, estimate: cEst, docs: cDocs, messages: cMsgs, project: cProj };
-  return topbar() + `<nav class="cbar"><div class="wrap"><button data-home>${t('back')}</button>${Object.keys(tabs).map(k => `<button data-ctab="${k}" class="${ctab === k ? 'on' : ''}">${t(k)}${k === 'messages' && u ? `<span class="badge">${u}</span>` : ''}</button>`).join('')}</div></nav>
+  const tabs = { dash: cDash, project: cProj, estimate: cEst, money: cMoney, pays: cPays, changes: cChanges, progress: cProgress, materials: cMats, docs: cDocs, messages: cMsgs };
+  return topbar() + `<nav class="cbar"><div class="wrap"><button data-home>${t('back')}</button>${Object.keys(tabs).map(k => `<button data-ctab="${k}" class="${ctab === k ? 'on' : ''}"${ctab === k ? ' aria-current="page"' : ''}>${k === 'project' ? t('clientTab') : t(k)}${k === 'messages' && u ? `<span class="badge">${u}</span>` : ''}</button>`).join('')}</div></nav>
   <main class="ed"><div class="wrap"><div class="phead"><label class="sr" for="ptitle-top">${t('ptitle')}</label><input id="ptitle-top" class="titleinp" data-t="projects" data-id="${p.id}" data-f="title" value="${esc(p.title)}" placeholder="${t('ptitleEx')}" maxlength="200">
   <label class="stlab"><span class="sr">${t('status')}</span><select class="stsel2 st-${stOf(p)}" data-t="projects" data-id="${p.id}" data-f="status">${STATUSES.map(s => `<option value="${s}"${stOf(p) === s ? ' selected' : ''}>${t('st_' + s)}</option>`).join('')}</select></label></div>
-  <div class="pclient"><b>${esc(p.client_name || '·')}</b>${p.client_phone ? `<a href="tel:+${S.intl(p.client_phone)}">${esc(p.client_phone)}</a>` : ''}${p.client_email ? `<a href="mailto:${esc(p.client_email)}">${esc(p.client_email)}</a>` : ''}${p.address ? `<span>${esc(p.address)}</span>` : ''}<button class="linkbtn" data-ctab="project">${t('edit')}</button></div>
+  <div class="pclient"><b>${esc(p.client_name || '·')}</b>${p.client_phone ? `<a href="tel:+${S.intl(p.client_phone)}">${esc(p.client_phone)}</a>` : ''}${p.client_email ? `<a href="mailto:${esc(p.client_email)}">${esc(p.client_email)}</a>` : ''}${p.address ? `<span>${esc(p.address)}</span>` : ''}<button class="btn2 editbtn" data-ctab="project" data-focus="client_name"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 20h4L19 9l-4-4L4 16zM14 6l4 4"/></svg>${t('editClient')}</button></div>
   ${shareBar(p)}${tabs[ctab]()}</div></main>`;
 }
 function buyForm() {
@@ -242,6 +242,7 @@ function render() {
   scrollTo(0, y);
   if (key) { const n = document.querySelector(key); if (n) n.focus({ preventScroll: true }); }
   const ch = $('#chat'); if (ch) ch.scrollTop = ch.scrollHeight;
+  const on = document.querySelector('.cbar button.on'); if (on && on.scrollIntoView) on.scrollIntoView({ block: 'nearest', inline: 'nearest' });
 }
 
 /* ---------- data ---------- */
@@ -362,7 +363,7 @@ app.addEventListener('click', async e => {
     }
     else if (d.open) { ctab = 'dash'; openProject(d.open); }
     else if ('home' in d) { view = 'home'; cur = null; try { history.replaceState(null, '', location.pathname); } catch (_) {} render(); scrollTo(0, 0); }
-    else if (d.ctab) { ctab = d.ctab; if (ctab === 'messages' && unseen(cur)) { await API.markSeen(cur.project.id); cur.comments.forEach(c => c.seen = true); } render(); scrollTo(0, 0); }
+    else if (d.ctab) { ctab = d.ctab; if (d.focus) setTimeout(() => { const f = document.querySelector(`[data-t="projects"][data-f="${d.focus}"]`); if (f) { f.scrollIntoView({ block: 'center' }); f.focus(); } }, 30); if (ctab === 'messages' && unseen(cur)) { await API.markSeen(cur.project.id); cur.comments.forEach(c => c.seen = true); } render(); scrollTo(0, 0); }
     else if ('newp' in d) { creating = true; render(); $('#newpf')?.scrollIntoView({ block: 'start' }); $('#np-name')?.focus(); }
     else if ('cancelnew' in d) { creating = false; render(); }
     else if (d.pf) { pfilter = d.pf; render(); }
