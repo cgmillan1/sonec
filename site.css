@@ -1,0 +1,137 @@
+/* VOICE: a trusted local crew; confident, warm, bilingual.
+   IDEA: the job-site photo log, a project told from footing to first light.
+   PICTURE: the finished pergola at night, full bleed, then the build strip.
+   COLOUR and TYPE: logo black, copper and silver on warm paper; Barlow family.
+   LAYOUT: dark hero, light service grid, dark photo strip, phones, form. */
+:root{color-scheme:light dark;--night:#0d0d0f;--paper:light-dark(#f3f1ee,#121214);--card:light-dark(#fff,#1a1a1d);--ink:light-dark(#17171a,#ecebe8);--mute:light-dark(#5d5b57,#a8a6a1);--line:light-dark(#e2ded8,#2c2c31);--cuf:#a24c1c;--cul:#ec9259;--cut:light-dark(#8f4318,#ec9259);--ok:light-dark(#2f7d4f,#62c48a);--bad:light-dark(#b23a26,#ec7a5a)}
+:root[data-theme=light]{color-scheme:light}:root[data-theme=dark]{color-scheme:dark}
+*{box-sizing:border-box;min-width:0}
+html{scroll-behavior:smooth;scroll-padding-top:76px}
+body{margin:0;background:var(--paper);color:var(--ink);font:17px/1.6 Barlow,system-ui,sans-serif;overflow-x:clip}
+h1,h2,h3{font-family:"Barlow Semi Condensed",Barlow,sans-serif;line-height:1.06;margin:0;text-wrap:balance}
+h2{font-size:clamp(32px,4.4vw,48px)}
+h3{font-size:22px}
+a{color:inherit}
+img{display:block;max-width:100%}
+:focus-visible{outline:3px solid var(--cul);outline-offset:3px;border-radius:4px}
+.wrap{max-width:1120px;margin:0 auto;padding:0 max(5vw,18px)}
+.sr{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
+.skiplink{position:absolute;left:12px;top:-60px;z-index:100;background:#fff;color:#000;padding:10px 14px;border-radius:8px}
+.skiplink:focus{top:12px}
+main:focus{outline:none}
+
+/* nav */
+.nav{position:sticky;top:0;z-index:50;background:rgba(13,13,15,.92);backdrop-filter:blur(8px);color:#ecebe8;border-bottom:2px solid var(--cuf);padding-top:env(safe-area-inset-top)}
+.nav .wrap{display:flex;align-items:center;gap:18px;min-height:66px}
+.brand{display:flex;align-items:center;gap:10px;text-decoration:none;margin-inline-end:auto}
+.brand .mk{width:44px;height:44px}
+.brand b{font:700 18px Montserrat,sans-serif;letter-spacing:.06em;display:block;line-height:1.1}
+.brand small{display:block;font-size:13px;color:#b4b2ad}
+.nav nav{display:flex;gap:4px}
+.nav nav a{text-decoration:none;padding:10px 12px;border-radius:8px;color:#d8d6d1;font-weight:500}
+.nav nav a:hover{background:#1f1f23;color:#fff}
+.seg{display:flex;border:1px solid #3a3a3f;border-radius:999px;overflow:hidden;flex:none}
+.seg button{font:inherit;background:none;border:0;color:#c9c7c2;padding:8px 13px;min-height:40px;font-weight:600;cursor:pointer}
+.seg button[aria-pressed=true]{background:var(--cuf);color:#fff}
+.callbtn svg{width:18px;height:18px;fill:currentColor;margin-inline-end:8px}
+.callbtn{flex:none;text-decoration:none;font-weight:700;background:var(--cuf);color:#fff;padding:10px 16px;border-radius:10px;min-height:44px;display:inline-flex;align-items:center;white-space:nowrap}
+
+/* hero */
+.hero{position:relative;background:var(--night);color:#f1efea;min-height:min(86vh,760px);display:flex;align-items:flex-end;overflow:hidden}
+.hero img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;object-position:50% 60%}
+.hero::after{content:"";position:absolute;inset:0;background:linear-gradient(180deg,rgba(13,13,15,.25) 0%,rgba(13,13,15,.15) 35%,rgba(13,13,15,.86) 78%,#0d0d0f 100%)}
+.hero .wrap{position:relative;z-index:1;padding-block:120px 54px;width:100%}
+.hero h1{font-size:clamp(40px,6.2vw,72px);max-width:17ch;color:#fff}
+.lead{font-size:clamp(18px,2.2vw,21px);max-width:38em;color:#e3e0da;margin:18px 0 26px}
+.ctas{display:flex;gap:12px;flex-wrap:wrap}
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:4px;text-decoration:none;font:700 17px Barlow,sans-serif;border-radius:10px;padding:13px 22px;min-height:50px;border:2px solid transparent;cursor:pointer}
+.btn.primary{background:var(--cuf);color:#fff}
+.btn.primary:hover{background:#8a4016}
+.btn.ghost{border-color:rgba(255,255,255,.55);color:#fff}
+.btn.ghost:hover{background:rgba(255,255,255,.1)}
+.btn.outline{border-color:var(--line);color:var(--ink);background:var(--card)}
+.btn.wide{width:100%}
+.btn:disabled{opacity:.6;cursor:default}
+.trust{list-style:none;padding:0;margin:28px 0 0;display:flex;flex-wrap:wrap;gap:10px 22px;color:#d9d6d0;font-weight:600;font-size:15px}
+.trust li{display:flex;align-items:center;gap:8px}
+.trust li::before{content:"";width:8px;height:8px;border-radius:2px;background:var(--cul);transform:rotate(45deg)}
+
+/* bands */
+.band{padding:clamp(56px,8vw,104px) 0}
+.band.dark{background:var(--night);color:#ecebe8}
+.band.soft{background:light-dark(#ebe6df,#17171a)}
+.sub{color:var(--mute);font-size:18px;max-width:40em;margin:12px 0 0}
+.dark .sub{color:#b9b6b0}
+
+.svc{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:18px;margin-top:38px}
+.svc article{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:24px}
+.svc svg{width:44px;height:44px;fill:none;stroke:var(--cut);stroke-width:2.4;stroke-linejoin:round;stroke-linecap:round;margin-bottom:14px}
+.svc p{color:var(--mute);margin:8px 0 0}
+
+/* photo strip */
+.strip{overflow-x:auto;scroll-snap-type:x mandatory;scroll-padding-inline:calc(max(5vw,18px) + max(0px,(100vw - 1120px)/2));margin-top:34px;padding-bottom:18px;scrollbar-color:#555 transparent;scroll-behavior:smooth}
+.strip ol{list-style:none;margin:0;padding:0 calc(max(5vw,18px) + max(0px,(100vw - 1120px)/2));display:flex;gap:14px;width:max-content}
+.strip li{scroll-snap-align:start;width:min(78vw,380px);position:relative}
+.strip img{width:100%;height:auto;aspect-ratio:4/3;object-fit:cover;border-radius:12px;background:#222}
+.strip b{position:absolute;top:10px;left:10px;background:rgba(13,13,15,.82);color:#fff;font:700 15px "Barlow Semi Condensed";min-width:30px;height:30px;border-radius:999px;display:grid;place-items:center;padding:0 8px}
+.strip span{display:block;margin-top:10px;font-weight:600;color:#e7e4de}
+.strip:focus-visible{outline-offset:-3px}
+.stripnav{display:flex;gap:10px;justify-content:flex-end;margin-top:-6px}
+.stripnav button{width:48px;height:48px;border-radius:50%;border:1px solid #3a3a3f;background:#17171a;color:#fff;font-size:22px;cursor:pointer;display:grid;place-items:center}
+.stripnav button:hover{background:#26262b}
+.stripnav svg{width:22px;height:22px;fill:none;stroke:currentColor;stroke-width:2.5;stroke-linecap:round;stroke-linejoin:round}
+.workhead{display:flex;align-items:flex-end;gap:20px;flex-wrap:wrap}.workhead>div{flex:1 1 420px}
+
+/* app */
+.appgrid{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1.15fr);gap:48px;align-items:center}
+.checks{list-style:none;padding:0;margin:24px 0 0;display:grid;gap:12px}
+.checks li{display:flex;gap:12px;align-items:flex-start;font-size:18px}
+.checks li::before{content:"";flex:none;width:24px;height:24px;margin-top:2px;border-radius:50%;background:var(--ok) url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath d='M6 12.5l4 4 8-9' fill='none' stroke='white' stroke-width='3' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E") center/16px no-repeat}
+.phones{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:14px;align-items:start}
+.phone{margin:0;border:6px solid #1c1c20;border-radius:28px;overflow:hidden;background:#000;box-shadow:0 18px 40px rgba(0,0,0,.25);aspect-ratio:600/1100}
+.phone img{width:100%;height:100%;object-fit:cover;object-position:top}
+.phones .phone:nth-child(2){margin-top:36px}.phones .phone:nth-child(3){margin-top:72px}
+
+/* process */
+.steps{list-style:none;padding:0;margin:34px 0 0;display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:18px;counter-reset:s}
+.steps li{position:relative;padding-top:56px}
+.steps b{position:absolute;top:0;left:0;width:42px;height:42px;border-radius:50%;background:var(--cuf);color:#fff;display:grid;place-items:center;font:700 20px "Barlow Semi Condensed"}
+.steps li:not(:last-child)::after{content:"";position:absolute;top:20px;left:52px;right:-8px;height:2px;background:light-dark(#d5cdc2,#33333a)}
+.steps p{color:var(--mute);margin:8px 0 0}
+
+/* estimate */
+.estgrid{display:grid;grid-template-columns:minmax(0,.9fr) minmax(0,1.1fr);gap:48px;align-items:start}
+.contactbox{display:flex;gap:12px;flex-wrap:wrap;margin-top:26px}
+.area{margin-top:28px;color:var(--mute);font-size:16px}
+.area b{color:var(--ink)}
+.card{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:clamp(20px,3vw,30px)}
+form label{display:block;font-weight:600;font-size:15px;margin-bottom:14px}
+form label i{color:var(--bad);font-style:normal}
+form input,form select,form textarea{display:block;width:100%;margin-top:6px;font:16px Barlow,sans-serif;color:var(--ink);background:var(--paper);border:1px solid light-dark(#cfc9c0,#3a3a40);border-radius:10px;padding:12px 14px;min-height:48px}
+form textarea{resize:vertical}
+form [aria-invalid=true]{border-color:var(--bad);box-shadow:0 0 0 2px color-mix(in srgb,var(--bad) 30%,transparent)}
+.two{display:grid;grid-template-columns:1fr 1fr;gap:0 14px}
+.hint{margin:-6px 0 14px;color:var(--mute);font-size:14px}
+.err{color:var(--bad);font-weight:600;min-height:0;margin-bottom:8px}
+.err:empty{display:none}
+.ok{font-size:18px;padding:8px 0}
+.ok b{color:var(--ok)}
+.hp{position:absolute;left:-9999px;width:1px;height:1px;overflow:hidden}
+
+.foot{background:var(--night);color:#c9c7c2;padding:40px 0 calc(40px + env(safe-area-inset-bottom));font-size:15px}
+.foot .wrap{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:24px}
+.foot b{color:#fff}
+.foot a{color:var(--cul)}
+
+@media(max-width:960px){.nav nav{display:none}.svc{grid-template-columns:repeat(2,minmax(0,1fr))}.appgrid,.estgrid{grid-template-columns:1fr}.steps{grid-template-columns:repeat(2,minmax(0,1fr))}.steps li::after{display:none}}
+@media(max-width:600px){
+  body{font-size:16px}
+  .nav .wrap{gap:10px;min-height:60px}.brand small{display:none}.brand .mk{width:38px;height:38px}
+  .callbtn{padding:10px 12px;font-size:15px}
+  .hero{min-height:88vh}.hero .wrap{padding-block:90px 36px}
+  .svc,.steps,.two,.foot .wrap{grid-template-columns:1fr}
+  .phones{gap:8px}.phone{border-width:4px;border-radius:18px}
+  .ctas .btn{flex:1 1 100%}
+}
+@media(max-width:420px){.callbtn .num{display:none}.callbtn{padding:10px 13px}}
+@media(prefers-reduced-motion:reduce){html{scroll-behavior:auto}}

@@ -1,354 +1,212 @@
 <!DOCTYPE html>
-<html lang="es">
+<html lang="en">
 <head>
 <meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Sonec · Mi Proyecto</title>
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Barlow:wght@400;500;600;700&family=Barlow+Semi+Condensed:wght@600;700&family=Montserrat:wght@600;700&display=swap">
-<style id="css">
-/* VOICE: premium remodeling crew, warm and trustworthy, bilingual.
-   IDEA: a job-site binder: estimate sheet, materials list, punch list.
-   PICTURE: the Sonec badge and a big copper progress ring on the client hero.
-   COLOUR and TYPE: brand black, copper, brushed silver; Barlow + Montserrat.
-   LAYOUT: sticky header, hero, section tabs, one calm column of cards. */
-:root{color-scheme:light dark;--bg:light-dark(#f3f1ee,#0d0d0f);--card:light-dark(#ffffff,#18181b);--ink:light-dark(#17171a,#ecebe8);--mute:light-dark(#62605c,#a4a29d);--line:light-dark(#e2ded8,#2a2a2e);--cu:#c9682e;--cu2:light-dark(#a8501d,#ec9259);--ok:light-dark(#2f7d4f,#62c48a);--soft:light-dark(#f8efe8,#231a15)}
-:root[data-theme=light]{color-scheme:light}:root[data-theme=dark]{color-scheme:dark}
-*{box-sizing:border-box;min-width:0}
-body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.55 Barlow,system-ui,sans-serif;overflow-x:clip}
-h1,h2,h3{font-family:"Barlow Semi Condensed",Barlow,sans-serif;line-height:1.08;margin:0;text-wrap:balance}
-button,input,select,textarea{font:inherit;color:inherit}
-button{cursor:pointer}
-:focus-visible{outline:3px solid var(--cu);outline-offset:2px}
-.wrap{max-width:1000px;margin:0 auto;padding:0 max(4vw,14px)}
-header.top{position:sticky;top:0;z-index:20;background:#0d0d0f;color:#ecebe8;border-bottom:2px solid var(--cu)}
-.top .wrap{display:flex;align-items:center;gap:12px;min-height:62px}
-.brand{display:flex;align-items:center;gap:10px;margin-inline-end:auto}
-.brand svg{width:42px;height:42px}
-.brand b{font:700 17px Montserrat,sans-serif;letter-spacing:.06em}
-.brand small{display:block;font-size:12px;color:#a4a29d;letter-spacing:.02em}
-.seg{display:flex;border:1px solid #3a3a3f;border-radius:999px;overflow:hidden}
-.seg button{background:none;border:0;padding:8px 14px;min-height:40px;color:#c9c7c2;font-weight:600}
-.seg button[aria-pressed=true]{background:var(--cu);color:#fff}
-.hero{background:#0d0d0f;color:#ecebe8;padding:28px 0 34px;background-image:radial-gradient(ellipse at 85% 0%,#3a2010 0,transparent 60%)}
-.hero .wrap{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:28px;align-items:center}
-.hero h1{font-size:clamp(30px,5vw,46px)}
-.hero .who{color:#ec9259;font-weight:600;margin-bottom:6px}
-.meta{display:flex;flex-wrap:wrap;gap:8px 18px;margin-top:14px;color:#c9c7c2;font-size:15px}
-.meta span{white-space:nowrap}
-.chip{display:inline-block;padding:3px 12px;border-radius:999px;background:#2a1a10;color:#ec9259;font-weight:600;font-size:14px;margin-top:14px}
-.ring{position:relative;width:190px;height:190px}
-.ring svg{width:100%;height:100%;transform:rotate(-90deg)}
-.ring div{position:absolute;inset:0;display:grid;place-content:center;text-align:center}
-.ring b{font:700 46px "Barlow Semi Condensed";line-height:1}
-.ring small{color:#a4a29d;font-size:14px}
-.tabs{position:sticky;top:62px;z-index:10;background:var(--bg);border-bottom:1px solid var(--line)}
-.tabs .wrap{display:flex;gap:4px;overflow-x:auto;scrollbar-width:none}
-.tabs button{flex:none;background:none;border:0;border-bottom:3px solid transparent;padding:14px 12px;min-height:48px;font-weight:600;color:var(--mute)}
-.tabs button.on{color:var(--ink);border-color:var(--cu)}
-main{padding:22px 0 60px}
-.card{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:clamp(16px,3vw,26px);margin-bottom:18px}
-.card h2{font-size:26px;margin-bottom:4px}
-.sub{color:var(--mute);margin:0 0 16px;font-size:15px}
-.kpis{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:12px;margin-bottom:18px}
-.kpi{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:14px 16px}
-.kpi small{color:var(--mute);font-size:14px}
-.kpi b{display:block;font:700 28px "Barlow Semi Condensed";white-space:nowrap}
-table{width:100%;border-collapse:collapse;font-size:15px}
-th{text-align:start;color:var(--mute);font-weight:600;font-size:14px;border-bottom:1px solid var(--line);padding:8px 6px}
-td{border-bottom:1px solid var(--line);padding:10px 6px;vertical-align:top}
-.n{text-align:end;white-space:nowrap;font-variant-numeric:tabular-nums}
-tfoot td{border:0;padding:6px}
-tfoot tr.tot td{font-weight:700;font-size:18px;border-top:2px solid var(--ink);padding-top:10px}
-.bar{height:10px;border-radius:99px;background:var(--line);overflow:hidden;margin:6px 0 4px}
-.bar i{display:block;height:100%;background:linear-gradient(90deg,var(--cu),#ec9259);border-radius:99px}
-.mat{display:flex;gap:12px;align-items:center;padding:12px 0;border-bottom:1px solid var(--line)}
-.mat:last-child{border:0}
-.dot{flex:none;width:26px;height:26px;border-radius:50%;display:grid;place-items:center;font-size:14px;font-weight:700;border:2px solid var(--line);color:transparent}
-.dot.y{background:var(--ok);border-color:var(--ok);color:#fff}
-.mat div{flex:1}.mat small{display:block;color:var(--mute);font-size:14px}
-.filters{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:8px}
-.filters button,.btn{border:1px solid var(--line);background:var(--card);border-radius:999px;padding:8px 14px;min-height:40px;font-weight:600}
-.filters button.on{background:var(--ink);color:var(--bg);border-color:var(--ink)}
-.cols{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:18px}
-ol.tl{list-style:none;margin:0;padding:0}
-.tl li{position:relative;padding:0 0 18px 34px}
-.tl li::before{content:"";position:absolute;left:11px;top:24px;bottom:0;width:2px;background:var(--line)}
-.tl li:last-child::before{display:none}
-.tl .dot{position:absolute;left:0;top:0}
-.tl b{display:block;font-weight:600}.tl small{color:var(--mute);font-size:14px}
-.tl.todo .dot{color:var(--mute)}
-.upd{border-inline-start:3px solid var(--cu);padding:2px 0 2px 14px;margin-bottom:16px}
-.upd small{color:var(--cu2);font-weight:600;font-size:14px}.upd p{margin:2px 0 0}
-.contact{display:flex;flex-wrap:wrap;gap:10px 24px;align-items:center}
-.contact a{color:var(--cu2);font-weight:600}
-footer{text-align:center;color:var(--mute);font-size:14px;padding:20px 0 40px}
-footer button{background:none;border:0;color:var(--mute);text-decoration:underline;min-height:44px}
-/* contractor */
-.ed label{display:block;font-size:14px;color:var(--mute);font-weight:600;margin-bottom:12px}
-.ed input,.ed select,.ed textarea{display:block;width:100%;margin-top:4px;padding:10px 12px;border:1px solid var(--line);border-radius:10px;background:var(--bg);font-size:16px;min-height:44px}
-.grid2{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:0 14px}
-.row{display:grid;gap:8px;align-items:center;padding:8px 0;border-bottom:1px solid var(--line)}
-.row input{margin:0}
-.r-item{grid-template-columns:minmax(0,1fr) 70px 110px 44px}
-.r-mat{grid-template-columns:44px minmax(0,1fr) 70px 90px 100px 44px}
-.r-step{grid-template-columns:44px minmax(0,1fr) 150px 44px}
-.r-pay{grid-template-columns:150px minmax(0,1fr) 120px 44px}
-.r-upd{grid-template-columns:150px minmax(0,1fr) 44px}
-.ico{width:44px;height:44px;border-radius:10px;border:1px solid var(--line);background:var(--card);display:grid;place-items:center;font-weight:700;padding:0}
-.ico.x{color:#c0392b}
-.chk{width:26px;height:26px;accent-color:var(--cu);margin:auto!important;min-height:0!important}
-.add{margin-top:12px;background:var(--soft);border:1px dashed var(--cu);color:var(--cu2);border-radius:10px;padding:10px 16px;min-height:44px;font-weight:700}
-.savebar{position:sticky;bottom:0;z-index:15;background:#0d0d0f;color:#ecebe8;border-top:2px solid var(--cu)}
-.savebar .wrap{display:flex;align-items:center;gap:12px;min-height:66px;flex-wrap:wrap;padding-block:8px}
-.savebar span{margin-inline-end:auto;font-size:15px}
-.primary{background:var(--cu);color:#fff;border:0;border-radius:10px;padding:10px 20px;min-height:46px;font-weight:700}
-.primary:disabled{opacity:.45;cursor:default}
-.ghost{background:none;border:1px solid #3a3a3f;color:#ecebe8;border-radius:10px;padding:10px 16px;min-height:46px;font-weight:600}
-.toast{position:fixed;left:50%;bottom:86px;transform:translateX(-50%);background:var(--ink);color:var(--bg);padding:10px 16px;border-radius:10px;z-index:60;display:flex;gap:12px;align-items:center;max-width:92vw}
-.toast button{background:none;border:0;color:#ec9259;font-weight:700;min-height:36px}
-.hint{font-size:14px;color:var(--mute);margin:6px 0 0}
-.sample{font-size:13px;color:var(--mute);margin-top:6px}
-/* splash */
-#splash{position:fixed;inset:0;z-index:100;background:radial-gradient(ellipse at 50% 35%,#24201d 0,#0a0a0b 70%);color:#ecebe8;display:grid;place-items:center;text-align:center;padding:24px;transition:opacity .7s}
-#splash.out{opacity:0;pointer-events:none}
-#splash .mk{width:min(170px,40vw);height:auto;overflow:visible}
-#splash .hex{stroke-dasharray:420;stroke-dashoffset:420;animation:draw 1.3s .2s cubic-bezier(.6,0,.2,1) forwards}
-#splash .ess{stroke-dasharray:260;stroke-dashoffset:260;animation:draw 1s 1s cubic-bezier(.6,0,.2,1) forwards}
-#splash .tri{opacity:0;transform-origin:-42px 60px;animation:pop .5s 1.7s forwards}
-#splash .wm{width:min(330px,78vw);margin-top:18px;opacity:0;animation:up .8s 1.9s forwards}
-#splash .sh{animation:shine 2.4s 2.4s ease-in-out}
-#splash h2{font:700 clamp(24px,5vw,38px)/1.15 "Barlow Semi Condensed";margin:26px 0 8px;opacity:0;animation:up .8s 2.8s forwards}
-#splash p{font-size:clamp(17px,3vw,22px);color:#ec9259;margin:0;opacity:0;animation:up .8s 3.6s forwards}
-#splash .enter{margin-top:28px;opacity:0;animation:up .6s 4.4s forwards}
-#splash .skip{position:absolute;top:14px;right:14px;background:none;border:1px solid #3a3a3f;color:#a4a29d;border-radius:999px;padding:8px 16px;min-height:40px}
-@keyframes draw{to{stroke-dashoffset:0}}
-@keyframes pop{from{opacity:0;transform:scale(.3)}to{opacity:1;transform:none}}
-@keyframes up{from{opacity:0;transform:translateY(14px)}to{opacity:1;transform:none}}
-@keyframes shine{from{transform:translateX(-120%)}to{transform:translateX(120%)}}
-@media(prefers-reduced-motion:reduce){#splash *{animation-duration:.01s!important;animation-delay:0s!important}}
-@media(max-width:700px){.hero .wrap{grid-template-columns:1fr}.ring{width:150px;height:150px;margin:auto}.ring b{font-size:38px}.cols,.grid2{grid-template-columns:1fr}.brand small{display:none}
-.r-item,.r-pay{grid-template-columns:minmax(0,1fr) minmax(0,1fr) 44px}.r-item .dd{grid-area:1/1/2/3}.r-item .x,.r-pay .x{grid-area:1/3}.r-item .q{grid-area:2/1}.r-item .p{grid-area:2/2}
-.r-pay .dt{grid-area:1/1}.r-pay .am{grid-area:1/2}.r-pay .nt{grid-area:2/1/3/3}
-.r-mat{grid-template-columns:44px repeat(3,minmax(0,1fr)) 44px}.r-mat .chk{grid-area:1/1}.r-mat .nm{grid-area:1/2/2/5}.r-mat .x{grid-area:1/5}.r-mat .q{grid-area:2/2}.r-mat .u{grid-area:2/3}.r-mat .c{grid-area:2/4/3/6}
-.r-step{grid-template-columns:44px minmax(0,1fr) 44px}.r-step .chk{grid-area:1/1}.r-step .tt{grid-area:1/2}.r-step .x{grid-area:1/3}.r-step .d{grid-area:2/2}
-.r-upd{grid-template-columns:minmax(0,1fr) 44px!important}.r-upd .dt{grid-area:1/1}.r-upd .x{grid-area:1/2}.r-upd .tx{grid-area:2/1/3/3}}
-@media(max-width:600px){table{font-size:14px}}
-
-/* contractor app */
-.cbar{background:#17171a;color:#ecebe8;border-bottom:1px solid #2a2a2e}
-.cbar .wrap{display:flex;gap:4px;overflow-x:auto;scrollbar-width:none}
-.cbar button{flex:none;background:none;border:0;border-bottom:3px solid transparent;padding:13px 12px;min-height:48px;font-weight:600;color:#a4a29d}
-.cbar button.on{color:#fff;border-color:var(--cu)}
-.role{font-size:13px;font-weight:700;background:var(--cu);color:#fff;border-radius:6px;padding:3px 8px;margin-inline-start:8px;letter-spacing:.02em}
-.kpi.neg b{color:#d0503a}.kpi.pos b{color:var(--ok)}
-.kpi em{display:block;font-style:normal;font-size:13px;color:var(--mute)}
-.cat{padding:10px 0;border-bottom:1px solid var(--line)}
-.cat:last-child{border:0}
-.cat .top2{display:flex;justify-content:space-between;gap:10px;flex-wrap:wrap}
-.cat .top2 span{white-space:nowrap;color:var(--mute);font-size:15px}
-.bar i.over{background:#d0503a}
-.form{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:0 12px;background:var(--soft);border-radius:12px;padding:14px 14px 4px;margin-bottom:16px}
-.form .wide{grid-column:1/-1}
-.form .primary{margin-bottom:12px;align-self:end}
-.r-bud{grid-template-columns:minmax(0,1fr) 130px 120px 44px}
-.r-bud .spent{text-align:end;white-space:nowrap;font-size:15px;color:var(--mute)}
-.r-item{grid-template-columns:minmax(0,1fr) 140px 70px 110px 44px!important}
-.r-exp{grid-template-columns:150px minmax(0,1fr) 150px 130px 110px 44px}
-.r-mat2{grid-template-columns:44px minmax(0,1fr) 70px 90px 150px 44px}
-.lock{min-height:100vh;display:grid;place-items:center;background:radial-gradient(ellipse at 50% 30%,#24201d 0,#0a0a0b 70%);color:#ecebe8;padding:24px;text-align:center}
-.lock .box{width:min(380px,100%)}
-.lock .mk{width:110px;height:110px}
-.lock h1{font-size:30px;margin:14px 0 6px}
-.lock p{color:#a4a29d;margin:0 0 18px}
-.lock input{display:block;width:100%;padding:12px 14px;border-radius:10px;border:1px solid #3a3a3f;background:#17171a;color:#fff;font-size:20px;letter-spacing:.3em;text-align:center;margin-bottom:10px;min-height:48px}
-.lock .err{color:#ec7a5a;min-height:24px;margin:4px 0}
-.lock .primary{width:100%}
-.lock .back{background:none;border:0;color:#a4a29d;text-decoration:underline;margin-top:14px;min-height:44px}
-@media(max-width:700px){
-.r-item{grid-template-columns:minmax(0,1fr) minmax(0,1fr) 44px!important}.r-item .tp{grid-area:2/1}.r-item .q{grid-area:2/2}.r-item .p{grid-area:3/1}
-.r-bud{grid-template-columns:minmax(0,1fr) minmax(0,1fr) 44px}.r-bud .ct{grid-area:1/1/2/3}.r-bud .x{grid-area:1/3}.r-bud .am{grid-area:2/1}.r-bud .spent{grid-area:2/2;align-self:center}
-.r-exp{grid-template-columns:minmax(0,1fr) minmax(0,1fr) 44px}.r-exp .ds{grid-area:1/1/2/3}.r-exp .x{grid-area:1/3}.r-exp .dt{grid-area:2/1}.r-exp .am{grid-area:2/2}.r-exp .cs{grid-area:3/1}.r-exp .st{grid-area:3/2}
-.r-mat2{grid-template-columns:44px repeat(3,minmax(0,1fr)) 44px}.r-mat2 .chk{grid-area:1/1}.r-mat2 .nm{grid-area:1/2/2/5}.r-mat2 .x{grid-area:1/5}.r-mat2 .q{grid-area:2/2}.r-mat2 .u{grid-area:2/3}.r-mat2 .dt{grid-area:2/4/3/6}}
-</style>
-</head>
-<body>
-<script id="data" type="application/json">{"lang": "", "contact": {"name": "Victor Sosa", "phone": "(801) 555-0142", "email": "info@gruposonec.com"}, "p": {"client": "Familia Rivera", "title": "Remodelación de cocina", "address": "1450 N Valley View Dr, Lehi, UT", "start": "2026-11-02", "end": "2026-12-18", "status": "progress", "tax": 7.25, "items": [{"d": "Demolición y retiro de gabinetes y piso", "k": "lab", "q": 1, "p": 1850}, {"d": "Gabinetes shaker blancos", "k": "mat", "q": 22, "p": 270}, {"d": "Instalación de gabinetes", "k": "lab", "q": 22, "p": 115}, {"d": "Cubierta de cuarzo Calacatta (pies cuadrados)", "k": "mat", "q": 58, "p": 45}, {"d": "Fabricación e instalación de cuarzo (pies cuadrados)", "k": "lab", "q": 58, "p": 23}, {"d": "Piso LVP roble claro (pies cuadrados)", "k": "mat", "q": 240, "p": 3.5}, {"d": "Instalación de piso (pies cuadrados)", "k": "lab", "q": 240, "p": 3}, {"d": "Azulejo subway, adhesivo y boquilla", "k": "mat", "q": 1, "p": 450}, {"d": "Instalación de backsplash", "k": "lab", "q": 1, "p": 1000}, {"d": "Luces LED, cable y contactos", "k": "mat", "q": 1, "p": 600}, {"d": "Electricista: 6 luces empotradas y contactos", "k": "lab", "q": 1, "p": 1600}, {"d": "Fregadero y llave", "k": "mat", "q": 1, "p": 560}, {"d": "Plomería: instalación de fregadero y llave", "k": "lab", "q": 1, "p": 420}, {"d": "Pintura y primer", "k": "mat", "q": 1, "p": 250}, {"d": "Pintura de paredes y techo", "k": "lab", "q": 1, "p": 850}], "pays": [{"date": "2026-10-28", "note": "Anticipo 30%", "amt": 7600}, {"date": "2026-11-14", "note": "Segundo pago: piso terminado", "amt": 5000}], "mats": [{"n": "Gabinetes shaker blancos", "q": 22, "u": "pzas", "b": true, "d": "2026-11-12"}, {"n": "Losa de cuarzo Calacatta", "q": 2, "u": "losas", "b": true, "d": "2026-11-13"}, {"n": "Piso LVP roble claro", "q": 260, "u": "pies²", "b": true, "d": "2026-11-08"}, {"n": "Azulejo subway 3x6", "q": 45, "u": "pies²", "b": false, "d": ""}, {"n": "Luces empotradas LED 6\"", "q": 6, "u": "pzas", "b": true, "d": "2026-11-06"}, {"n": "Fregadero de acero inoxidable", "q": 1, "u": "pza", "b": false, "d": ""}, {"n": "Llave de cocina extraíble", "q": 1, "u": "pza", "b": false, "d": ""}, {"n": "Pintura y primer", "q": 4, "u": "galones", "b": false, "d": ""}], "steps": [{"t": "Firma del estimado y anticipo", "done": true, "date": "2026-10-28"}, {"t": "Demolición y retiro de escombros", "done": true, "date": "2026-11-04"}, {"t": "Electricidad y plomería en bruto", "done": true, "date": "2026-11-10"}, {"t": "Instalación de piso LVP", "done": true, "date": "2026-11-14"}, {"t": "Instalación de gabinetes", "done": false, "date": "2026-11-24"}, {"t": "Medición e instalación de cuarzo", "done": false, "date": "2026-12-03"}, {"t": "Backsplash, fregadero y llave", "done": false, "date": "2026-12-10"}, {"t": "Pintura, detalles y revisión final", "done": false, "date": "2026-12-17"}], "upds": [{"date": "2026-11-14", "text": "El piso quedó instalado. Mañana llegan los gabinetes y empezamos la instalación el lunes."}, {"date": "2026-11-10", "text": "Inspección de electricidad aprobada. Las 6 luces empotradas ya tienen cableado."}, {"date": "2026-11-04", "text": "Terminamos la demolición. La cocina está lista para la parte eléctrica y de plomería."}]}, "vault": null, "seed": {"budget": [{"cat": "Materiales", "amt": 11500}, {"cat": "Mano de obra", "amt": 6500}, {"cat": "Subcontratistas", "amt": 2400}, {"cat": "Permisos y basura", "amt": 650}, {"cat": "Otros", "amt": 400}], "exps": [{"date": "2026-11-14", "desc": "Ayudantes, semana 2", "cat": "Mano de obra", "store": "Nómina", "amt": 1400}, {"date": "2026-11-13", "desc": "Losa de cuarzo Calacatta (2)", "cat": "Materiales", "store": "MSI Stone", "amt": 2650}, {"date": "2026-11-12", "desc": "Gabinetes shaker blancos (22)", "cat": "Materiales", "store": "Home Depot", "amt": 5940}, {"date": "2026-11-10", "desc": "Electricista: cableado en bruto", "cat": "Subcontratistas", "store": "Subcontrato", "amt": 1200}, {"date": "2026-11-10", "desc": "Plomero: líneas del fregadero", "cat": "Subcontratistas", "store": "Subcontrato", "amt": 650}, {"date": "2026-11-08", "desc": "Piso LVP roble claro", "cat": "Materiales", "store": "Floor & Decor", "amt": 780}, {"date": "2026-11-07", "desc": "Ayudantes, semana 1", "cat": "Mano de obra", "store": "Nómina", "amt": 1400}, {"date": "2026-11-06", "desc": "Luces empotradas LED (6)", "cat": "Materiales", "store": "Home Depot", "amt": 168}, {"date": "2026-11-03", "desc": "Contenedor de basura 15 yd", "cat": "Permisos y basura", "store": "Waste Mgmt", "amt": 420}], "notes": ""}}</script>
-<div id="app"></div>
-<script id="js">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' https://cdn.jsdelivr.net; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src https://fonts.gstatic.com; img-src 'self' data:; connect-src 'self' https://*.supabase.co; object-src 'none'; base-uri 'self'; form-action 'self'">
+<title>Grupo Sonec · Decks, basements, roofing and remodels in Utah</title>
+<meta name="description" content="Licensed and insured contractor serving Utah County and Salt Lake County. Basement finishing, roofing, decks, pergolas, outdoor kitchens and remodels, in English and Spanish. Call (385) 266-0675.">
+<link rel="canonical" href="https://cgmillan1.github.io/sonec/">
+<meta property="og:type" content="website">
+<meta property="og:title" content="Grupo Sonec · Construction and remodeling in Utah">
+<meta property="og:description" content="Basements, roofing, decks, pergolas, outdoor kitchens and remodels. Utah County and Salt Lake County.">
+<meta property="og:image" content="https://cgmillan1.github.io/sonec/img/13-terminado-noche.jpg">
+<meta property="og:url" content="https://cgmillan1.github.io/sonec/">
+<meta name="theme-color" content="#0d0d0f">
+<link rel="icon" href="Sonec-logo.svg">
+<link rel="apple-touch-icon" href="icon-180.png">
+<link rel="preload" as="image" href="img/13-terminado-noche.jpg" imagesrcset="img/13-terminado-noche-sm.jpg 800w, img/13-terminado-noche.jpg 1600w" imagesizes="100vw">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Barlow:wght@400;500;600;700&family=Barlow+Semi+Condensed:wght@600;700&family=Montserrat:wght@700&display=swap">
+<link rel="stylesheet" href="site.css">
+<script type="application/ld+json">
 {
-const SRC_CSS=document.getElementById('css').textContent, SRC_JS=document.getElementById('js').textContent;
-let S=JSON.parse(document.getElementById('data').textContent);
-let I=null, PIN=null;
-const T={es:{client:'Cliente',contractor:'Contratista',thanks:'Gracias por confiar en nosotros',dream:'Tu sueño es nuestro sueño',enter:'Ver mi proyecto',skip:'Saltar',overview:'Resumen',estimate:'Estimado',materials:'Materiales',steps:'Pasos',updates:'Avances',done:'completado',start:'Inicio',end:'Entrega estimada',st_planning:'En planeación',st_progress:'En progreso',st_paused:'En pausa',st_done:'Terminado',total:'Total del proyecto',paid:'Pagado',balance:'Saldo pendiente',bought:'Materiales comprados',desc:'Concepto',qty:'Cant.',price:'Precio',amount:'Importe',subtotal:'Subtotal',tax:'Impuesto',payments:'Pagos del cliente',estSub:'Detalle del trabajo cotizado y pagos.',matSub:'Todo lo necesario para tu proyecto y lo que ya compramos.',all:'Todos',pending:'Por comprar',purchased:'Comprado',stepsSub:'Lo que ya hicimos y lo que sigue.',taken:'Pasos realizados',next:'Pasos pendientes',updSub:'Notas del equipo sobre tu proyecto.',contact:'¿Preguntas? Contáctanos',projInfo:'Datos del proyecto',clientName:'Cliente',ptitle:'Proyecto',address:'Dirección',status:'Estado',taxp:'Impuesto % (materiales)',addItem:'+ Agregar concepto',addMat:'+ Agregar material',addStep:'+ Agregar paso',addUpd:'Publicar avance',newUpd:'Escribe un avance para el cliente',unit:'Unidad',date:'Fecha',note:'Nota',contactInfo:'Datos de contacto',cname:'Nombre',phone:'Teléfono',email:'Correo',save:'Guardar cambios',saved:'Todo guardado',unsaved:'Cambios sin guardar',saving:'Guardando…',noPerm:'Solo el dueño o un editor de la página puede guardar.',local:'Guardado en este navegador (vista previa).',removed:'Eliminado',undo:'Deshacer',viewClient:'Ver como cliente',access:'Acceso para contratista',sample:'Datos de ejemplo: reemplázalos con el proyecto real.',none:'Nada por aquí todavía.',share:'Comparte esta página con tu cliente desde el botón Compartir de claude.ai. El cliente solo ve la app del cliente; tus costos van cifrados con tu PIN.',
-dash:'Panel',money:'Presupuesto y gastos',cobros:'Cobros',progress:'Avance',project:'Proyecto',contract:'Contrato (cliente)',collected:'Cobrado',receivable:'Por cobrar',budget:'Presupuesto de costos',spent:'Gastado',left:'Queda del presupuesto',profit:'Ganancia estimada',profitSub:'Contrato sin impuesto menos lo gastado',byCat:'Presupuesto por categoría',recent:'Compras y gastos recientes',logBuy:'Registrar compra o gasto',logPay:'Registrar pago del cliente',store:'Tienda / a quién',cat:'Categoría',linkMat:'Marcar material como comprado',noLink:'Ninguno',register:'Registrar',buyOk:'Gasto registrado',payOk:'Pago registrado',addCat:'+ Agregar categoría',category:'Categoría',budgetAmt:'Presupuesto',expLog:'Registro de gastos',of:'de',over:'Sobre presupuesto',lockT:'Panel del contratista',lockS:'Escribe tu PIN para ver presupuesto, compras y cobros.',createT:'Crea tu PIN',createS:'Este PIN protege tus costos. El cliente nunca los ve. Guárdalo bien: no se puede recuperar.',pin:'PIN',pin2:'Repite el PIN',go:'Entrar',badPin:'PIN incorrecto',pinShort:'Usa al menos 4 dígitos',pinMatch:'Los PIN no coinciden',back:'Volver a la vista del cliente',changePin:'Cambiar PIN',newPin:'Nuevo PIN',pinChanged:'PIN cambiado. Guarda los cambios.',lockNow:'Bloquear',matPriv:'El cliente ve el material y si ya se compró, pero no su costo.',datePaid:'Fecha de compra',amt:'Monto',estSum:'Suma del estimado',gh:'Se descargó index.html. Súbelo a GitHub para que el cliente vea los cambios.',labor:'Mano de obra',taxMat:'Impuesto sobre materiales',paysTab:'Pagos',paySub:'Lo que has pagado y lo que falta por pagar.',paidSoFar:'Has pagado',remaining:'Falta por pagar',paidPct:'del total pagado',history:'Historial de pagos'},
-en:{client:'Client',contractor:'Contractor',thanks:'Thank you for trusting us',dream:'Your dream is our dream',enter:'See my project',skip:'Skip',overview:'Overview',estimate:'Estimate',materials:'Materials',steps:'Steps',updates:'Updates',done:'complete',start:'Start',end:'Estimated completion',st_planning:'Planning',st_progress:'In progress',st_paused:'Paused',st_done:'Completed',total:'Project total',paid:'Paid',balance:'Balance due',bought:'Materials purchased',desc:'Description',qty:'Qty',price:'Price',amount:'Amount',subtotal:'Subtotal',tax:'Tax',payments:'Client payments',estSub:'Quoted work and payments.',matSub:'Everything your project needs and what we already bought.',all:'All',pending:'To buy',purchased:'Purchased',stepsSub:'What we have done and what comes next.',taken:'Steps completed',next:'Steps remaining',updSub:'Notes from the crew about your project.',contact:'Questions? Contact us',projInfo:'Project details',clientName:'Client',ptitle:'Project',address:'Address',status:'Status',taxp:'Tax % (materials)',addItem:'+ Add line item',addMat:'+ Add material',addStep:'+ Add step',addUpd:'Post update',newUpd:'Write an update for the client',unit:'Unit',date:'Date',note:'Note',contactInfo:'Contact info',cname:'Name',phone:'Phone',email:'Email',save:'Save changes',saved:'All saved',unsaved:'Unsaved changes',saving:'Saving…',noPerm:'Only the page owner or an editor can save.',local:'Saved in this browser (preview).',removed:'Removed',undo:'Undo',viewClient:'View as client',access:'Contractor access',sample:'Sample data: replace it with the real project.',none:'Nothing here yet.',share:'Share this page with your client using the Share button on claude.ai. The client only sees the client app; your costs are encrypted with your PIN.',
-dash:'Dashboard',money:'Budget and expenses',cobros:'Payments',progress:'Progress',project:'Project',contract:'Contract (client)',collected:'Collected',receivable:'Still to collect',budget:'Cost budget',spent:'Spent',left:'Budget left',profit:'Estimated profit',profitSub:'Contract before tax minus spending',byCat:'Budget by category',recent:'Recent purchases and expenses',logBuy:'Log a purchase or expense',logPay:'Log a client payment',store:'Store / paid to',cat:'Category',linkMat:'Mark material as purchased',noLink:'None',register:'Log it',buyOk:'Expense logged',payOk:'Payment logged',addCat:'+ Add category',category:'Category',budgetAmt:'Budget',expLog:'Expense log',of:'of',over:'Over budget',lockT:'Contractor panel',lockS:'Enter your PIN to see budget, purchases and payments.',createT:'Create your PIN',createS:'This PIN protects your costs. The client never sees them. Keep it safe: it cannot be recovered.',pin:'PIN',pin2:'Repeat PIN',go:'Enter',badPin:'Wrong PIN',pinShort:'Use at least 4 digits',pinMatch:'PINs do not match',back:'Back to the client view',changePin:'Change PIN',newPin:'New PIN',pinChanged:'PIN changed. Save your changes.',lockNow:'Lock',matPriv:'The client sees each material and whether it was bought, not its cost.',datePaid:'Purchase date',amt:'Amount',estSum:'Estimate total',gh:'index.html downloaded. Upload it to GitHub so the client sees the changes.',labor:'Labor',taxMat:'Tax on materials',paysTab:'Payments',paySub:'What you have paid and what is still due.',paidSoFar:'You have paid',remaining:'Still due',paidPct:'of the total paid',history:'Payment history'}};
-let L=S.lang||((navigator.language||'es').startsWith('es')?'es':'en');
-const t=k=>T[L][k]||k;
-const $=s=>document.querySelector(s), app=$('#app');
-const esc=v=>String(v??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
-const money=n=>new Intl.NumberFormat('en-US',{style:'currency',currency:'USD',maximumFractionDigits:2}).format(+n||0);
-const today=()=>{const d=new Date();return new Date(d-d.getTimezoneOffset()*6e4).toISOString().slice(0,10)};
-const fdate=d=>{if(!d)return'';const x=new Date(d+'T12:00');return isNaN(x)?d:x.toLocaleDateString(L==='es'?'es-MX':'en-US',{day:'numeric',month:'short',year:'numeric'})};
-const P=()=>S.p;
-const lt=i=>(+i.q||0)*(+i.p||0);const calc=()=>{const p=P(),subM=p.items.filter(i=>i.k!=='lab').reduce((a,i)=>a+lt(i),0),subL=p.items.filter(i=>i.k==='lab').reduce((a,i)=>a+lt(i),0),sub=subM+subL,tax=subM*(+p.tax||0)/100,tot=sub+tax,paid=p.pays.reduce((a,x)=>a+(+x.amt||0),0),sd=p.steps.filter(s=>s.done).length,mb=p.mats.filter(m=>m.b).length;
- const r={subM,subL,sub,tax,tot,paid,bal:tot-paid,pct:p.steps.length?Math.round(sd/p.steps.length*100):0,sd,mb};
- if(I){r.bud=I.budget.reduce((a,b)=>a+(+b.amt||0),0);r.spent=I.exps.reduce((a,e)=>a+(+e.amt||0),0);r.left=r.bud-r.spent;r.profit=sub-r.spent;r.byCat=c=>I.exps.filter(e=>e.cat===c).reduce((a,e)=>a+(+e.amt||0),0)}
- return r};
-/* crypto: PBKDF2 + AES-GCM, so the client page never carries readable costs */
-const b64=u=>btoa(String.fromCharCode(...new Uint8Array(u))), ub=s=>Uint8Array.from(atob(s),c=>c.charCodeAt(0));
-async function kdf(pin,salt){const k=await crypto.subtle.importKey('raw',new TextEncoder().encode(pin),'PBKDF2',false,['deriveKey']);return crypto.subtle.deriveKey({name:'PBKDF2',salt,iterations:200000,hash:'SHA-256'},k,{name:'AES-GCM',length:256},false,['encrypt','decrypt'])}
-async function seal(obj,pin){const s=crypto.getRandomValues(new Uint8Array(16)),iv=crypto.getRandomValues(new Uint8Array(12));const c=await crypto.subtle.encrypt({name:'AES-GCM',iv},await kdf(pin,s),new TextEncoder().encode(JSON.stringify(obj)));return{s:b64(s),i:b64(iv),c:b64(c)}}
-async function open_(v,pin){const d=await crypto.subtle.decrypt({name:'AES-GCM',iv:ub(v.i)},await kdf(pin,ub(v.s)),ub(v.c));return JSON.parse(new TextDecoder().decode(d))}
-
-const MARK=(cls='')=>`<svg class="mk ${cls}" viewBox="-80 -80 160 160" aria-hidden="true"><defs><linearGradient id="cu${cls}" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#f3a26a"/><stop offset=".45" stop-color="#d06a2f"/><stop offset="1" stop-color="#8e3f17"/></linearGradient><linearGradient id="ag${cls}" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#fff"/><stop offset=".5" stop-color="#b9bec5"/><stop offset=".55" stop-color="#8d939b"/><stop offset="1" stop-color="#e3e6ea"/></linearGradient></defs><path class="hex" d="M-60.6,30 V-35 L0,-70 L60.6,-35 V35 L0,70" fill="none" stroke="url(#ag${cls})" stroke-width="12"/><path class="ess" d="M33,-30 H-18 L-30,-18 V-8 L-18,4 H18 L30,16 V26 L18,38 H-33" fill="none" stroke="url(#cu${cls})" stroke-width="15"/><path class="tri" d="M-62,70 L-42,42 L-22,70 Z" fill="url(#ag${cls})"/></svg>`;
-const WORD=`<svg class="wm" viewBox="-6 -22 340 92" aria-label="Grupo Sonec Remodelación"><defs><linearGradient id="wag" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#fff"/><stop offset=".5" stop-color="#b9bec5"/><stop offset=".55" stop-color="#8d939b"/><stop offset="1" stop-color="#e3e6ea"/></linearGradient><linearGradient id="wcu" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#f3a26a"/><stop offset="1" stop-color="#a8501d"/></linearGradient><linearGradient id="gl" x1="0" x2="1"><stop offset="0" stop-color="#fff" stop-opacity="0"/><stop offset=".5" stop-color="#fff" stop-opacity=".55"/><stop offset="1" stop-color="#fff" stop-opacity="0"/></linearGradient><clipPath id="wc"><rect x="-6" y="0" width="340" height="42"/></clipPath></defs><text x="164" y="-8" fill="#9aa0a7" font-family="Montserrat" font-weight="700" font-size="11" letter-spacing="8" text-anchor="middle">GRUPO</text><g fill="none" stroke="url(#wag)" stroke-width="8"><path d="M60,4 H12 L4,12 V14 L10,20 H54 L60,26 V28 L52,36 H4"/><path transform="translate(66,0)" d="M12,4 H52 L60,12 V28 L52,36 H12 L4,28 V12 Z" stroke="url(#wcu)"/><path transform="translate(132,0)" d="M4,40 V5 L60,35 V0"/><path transform="translate(198,0)" d="M60,4 H4 V36 H60 M4,20 H50"/><path transform="translate(264,0)" d="M60,4 H12 L4,12 V28 L12,36 H60"/></g><g clip-path="url(#wc)"><rect class="sh" x="-6" y="0" width="340" height="42" fill="url(#gl)" transform="translate(-400)"/></g><text x="164" y="64" fill="#d9874f" font-family="Montserrat" font-weight="700" font-size="13" letter-spacing="5" text-anchor="middle">REMODELACIÓN</text></svg>`;
-let role=location.hash==='#contractor'?'c':'v', tab='overview', ctab='dash', mf='all', dirty=false, undoSnap=null, tmr, lockErr='';
-
-function splash(){
- const d=document.createElement('div');d.id='splash';d.setAttribute('role','dialog');d.setAttribute('aria-label','Sonec');
- d.innerHTML=`<button class="skip">${t('skip')}</button><div>${MARK('s')}<div>${WORD}</div><h2>${t('thanks')}</h2><p>${t('dream')}</p><button class="primary enter">${t('enter')}</button></div>`;
- document.body.appendChild(d);
- const close=()=>{d.classList.add('out');setTimeout(()=>d.remove(),700)};
- d.querySelector('.skip').onclick=close;d.querySelector('.enter').onclick=close;
-}
-const langSeg=()=>`<div class="seg" role="group" aria-label="Language"><button data-lang="es" aria-pressed="${L==='es'}">ES</button><button data-lang="en" aria-pressed="${L==='en'}">EN</button></div>`;
-function header(c){return `<header class="top"><div class="wrap"><div class="brand">${MARK('h')}<div><b>SONEC</b>${c?`<span class="role">${t('contractor')}</span>`:''}<small>${L==='es'?'Remodelación':'Remodeling'}</small></div></div>${c?`<button class="ghost" data-lock style="min-height:40px;padding:6px 12px">${t('lockNow')}</button>`:''}${langSeg()}</div></header>`}
-
-/* ---------- CLIENT APP ---------- */
-function client(){
- const p=P(),c=calc(),C=2*Math.PI*80;
- const secs={overview:ov,estimate:est,paysTab:cliPays,materials:mats,steps:steps,updates:upds};
- return header()+`<section class="hero"><div class="wrap"><div><div class="who">${esc(p.client)}</div><h1>${esc(p.title)}</h1>
- <div class="meta"><span>${esc(p.address)}</span><span>${t('start')}: ${fdate(p.start)}</span><span>${t('end')}: ${fdate(p.end)}</span></div><span class="chip">${t('st_'+p.status)}</span></div>
- <div class="ring" role="img" aria-label="${c.pct}% ${t('done')}"><svg viewBox="0 0 190 190"><defs><linearGradient id="rg"><stop offset="0" stop-color="#c9682e"/><stop offset="1" stop-color="#f3a26a"/></linearGradient></defs><circle cx="95" cy="95" r="80" fill="none" stroke="#2a2a2e" stroke-width="14"/><circle cx="95" cy="95" r="80" fill="none" stroke="url(#rg)" stroke-width="14" stroke-linecap="round" stroke-dasharray="${C}" stroke-dashoffset="${C*(1-c.pct/100)}"/></svg><div><b>${c.pct}%</b><small>${t('done')}</small></div></div></div></section>
- <nav class="tabs"><div class="wrap">${Object.keys(secs).map(k=>`<button data-tab="${k}" class="${tab===k?'on':''}">${t(k)}</button>`).join('')}</div></nav>
- <main><div class="wrap">${secs[tab]()}</div></main>
- <footer><div>© Grupo Sonec</div><button data-go="c">${t('access')}</button></footer>`;
-}
-function ov(){const p=P(),c=calc();const nx=p.steps.find(s=>!s.done);
- return `<div class="kpis"><div class="kpi"><small>${t('total')}</small><b>${money(c.tot)}</b></div><div class="kpi pos"><small>${t('paidSoFar')}</small><b>${money(c.paid)}</b></div><div class="kpi"><small>${t('remaining')}</small><b>${money(c.bal)}</b></div><div class="kpi"><small>${t('bought')}</small><b>${c.mb} / ${p.mats.length}</b></div></div>
- <div class="cols"><div class="card"><h2>${t('next')}</h2>${nx?`<p class="sub">${esc(nx.t)} · ${fdate(nx.date)}</p>`:`<p class="sub">${t('st_done')}</p>`}<div class="bar"><i style="width:${c.pct}%"></i></div><small class="sub">${c.sd} / ${p.steps.length} ${t('steps').toLowerCase()}</small></div>
- <div class="card"><h2>${t('updates')}</h2>${p.upds[0]?`<div class="upd"><small>${fdate(p.upds[0].date)}</small><p>${esc(p.upds[0].text)}</p></div>`:`<p class="sub">${t('none')}</p>`}</div></div>${contact()}`}
-function contact(){const k=S.contact;return `<div class="card"><h2>${t('contact')}</h2><div class="contact"><b>${esc(k.name)}</b><span>${esc(k.phone)}</span><a href="mailto:${esc(k.email)}">${esc(k.email)}</a></div></div>`}
-function est(){const p=P(),c=calc();
- const grp=(k,lab,st)=>{const rows=p.items.filter(i=>(i.k==='lab')===(k==='lab'));return `<h3 style="font-size:20px;margin:18px 0 6px">${lab}</h3><div class="scroll"><table class="stack"><thead><tr><th>${t('desc')}</th><th class="n">${t('qty')}</th><th class="n">${t('price')}</th><th class="n">${t('amount')}</th></tr></thead><tbody>${rows.map(i=>`<tr><td>${esc(i.d)}</td><td class="n">${esc(i.q)}</td><td class="n">${money(i.p)}</td><td class="n">${money(lt(i))}</td></tr>`).join('')||`<tr><td>${t('none')}</td></tr>`}</tbody></table></div><table><tfoot><tr><td><b>${t('subtotal')} · ${lab}</b></td><td class="n"><b>${money(st)}</b></td></tr></tfoot></table>`};
- return `<div class="kpis"><div class="kpi"><small>${t('materials')}</small><b>${money(c.subM)}</b></div><div class="kpi"><small>${t('labor')}</small><b>${money(c.subL)}</b></div><div class="kpi"><small>${t('total')}</small><b>${money(c.tot)}</b></div></div>
- <div class="card"><h2>${t('estimate')}</h2><p class="sub">${t('estSub')}</p>${grp('mat',t('materials'),c.subM)}${grp('lab',t('labor'),c.subL)}
- <table style="margin-top:14px"><tfoot><tr><td>${t('materials')}</td><td class="n">${money(c.subM)}</td></tr><tr><td>${t('labor')}</td><td class="n">${money(c.subL)}</td></tr><tr><td>${t('taxMat')} (${esc(p.tax)}%)</td><td class="n">${money(c.tax)}</td></tr><tr class="tot"><td>${t('total')}</td><td class="n">${money(c.tot)}</td></tr></tfoot></table></div>`}
-function cliPays(){const p=P(),c=calc(),pc=c.tot?Math.min(100,c.paid/c.tot*100):0;
- return `<div class="card"><h2>${t('paysTab')}</h2><p class="sub">${t('paySub')}</p>
- <div class="kpis" style="margin:0"><div class="kpi pos"><small>${t('paidSoFar')}</small><b>${money(c.paid)}</b></div><div class="kpi"><small>${t('remaining')}</small><b>${money(c.bal)}</b></div><div class="kpi"><small>${t('total')}</small><b>${money(c.tot)}</b></div></div>
- <div class="bar" style="height:16px;margin-top:16px"><i style="width:${pc}%;background:var(--ok)"></i></div><p class="sub">${Math.round(pc)}% ${t('paidPct')}</p></div>
- <div class="card"><h2>${t('history')}</h2>${p.pays.length?`<table><thead><tr><th>${t('date')}</th><th>${t('note')}</th><th class="n">${t('amt')}</th></tr></thead><tbody>${p.pays.map(x=>`<tr><td style="white-space:nowrap">${fdate(x.date)}</td><td>${esc(x.note)}</td><td class="n">${money(x.amt)}</td></tr>`).join('')}</tbody><tfoot><tr class="tot"><td colspan="2">${t('paidSoFar')}</td><td class="n">${money(c.paid)}</td></tr><tr><td colspan="2"><b>${t('remaining')}</b></td><td class="n"><b>${money(c.bal)}</b></td></tr></tfoot></table>`:`<p class="sub">${t('none')}</p>`}</div>`}
-function mats(){const p=P(),c=calc(),list=p.mats.filter(m=>mf==='all'||(mf==='b')===!!m.b);
- return `<div class="card"><h2>${t('materials')}</h2><p class="sub">${t('matSub')}</p><div class="bar"><i style="width:${p.mats.length?c.mb/p.mats.length*100:0}%"></i></div><p class="sub">${c.mb} / ${p.mats.length} ${t('purchased').toLowerCase()}</p>
- <div class="filters">${[['all','all'],['p','pending'],['b','purchased']].map(([k,l])=>`<button data-mf="${k}" class="${mf===k?'on':''}">${t(l)}</button>`).join('')}</div>
- ${list.map(m=>`<div class="mat"><span class="dot ${m.b?'y':''}">✓</span><div><b>${esc(m.n)}</b><small>${esc(m.q)} ${esc(m.u)}</small></div><small class="n" style="color:${m.b?'var(--ok)':'var(--mute)'};font-weight:600">${m.b?t('purchased')+(m.d?' · '+fdate(m.d):''):t('pending')}</small></div>`).join('')||`<p class="sub">${t('none')}</p>`}</div>`}
-function steps(){const p=P(),d=p.steps.filter(s=>s.done),n=p.steps.filter(s=>!s.done);
- const li=(s,i)=>`<li><span class="dot ${s.done?'y':''}">${s.done?'✓':i}</span><b>${esc(s.t)}</b><small>${fdate(s.date)}</small></li>`;
- return `<div class="cols"><div class="card"><h2>${t('taken')}</h2><p class="sub">${d.length}</p><ol class="tl">${d.map(li).join('')||`<p class="sub">${t('none')}</p>`}</ol></div>
- <div class="card"><h2>${t('next')}</h2><p class="sub">${n.length}</p><ol class="tl todo">${n.map((s,i)=>li(s,i+1)).join('')||`<p class="sub">${t('none')}</p>`}</ol></div></div>`}
-function upds(){const p=P();return `<div class="card"><h2>${t('updates')}</h2><p class="sub">${t('updSub')}</p>${p.upds.map(u=>`<div class="upd"><small>${fdate(u.date)}</small><p>${esc(u.text)}</p></div>`).join('')||`<p class="sub">${t('none')}</p>`}</div>`}
-
-/* ---------- CONTRACTOR APP ---------- */
-function lock(){const create=!S.vault;
- return `<div class="lock"><form class="box" id="lockf">${MARK('l')}<h1>${create?t('createT'):t('lockT')}</h1><p>${create?t('createS'):t('lockS')}</p>
- <input id="pin1" type="password" inputmode="numeric" autocomplete="off" placeholder="${t('pin')}" aria-label="${t('pin')}">${create?`<input id="pin2" type="password" inputmode="numeric" autocomplete="off" placeholder="${t('pin2')}" aria-label="${t('pin2')}">`:''}
- <div class="err" role="alert">${esc(lockErr)}</div><button class="primary" type="submit">${t('go')}</button><button class="back" type="button" data-go="v">${t('back')}</button>
- <div style="margin-top:16px">${langSeg()}</div></form></div>`}
-const inp=(path,val,type='text',cls='')=>`<input class="${cls}" type="${type}" data-k="${path}" value="${esc(val)}"${type==='number'?' step="any" inputmode="decimal"':''} aria-label="${path}">`;
-const del=(arr,i)=>`<button class="ico x" data-del="${arr}.${i}" aria-label="${t('removed')}">✕</button>`;
-const catOpts=(sel)=>I.budget.map(b=>`<option${b.cat===sel?' selected':''}>${esc(b.cat)}</option>`).join('');
-function contractor(){
- const tabs={dash:cDash,money:cMoney,cobros:cPays,progress:cProg,materials:cMats,estimate:cEst,project:cProj};
- return header(true)+`<nav class="cbar"><div class="wrap">${Object.keys(tabs).map(k=>`<button data-ctab="${k}" class="${ctab===k?'on':''}">${t(k)}</button>`).join('')}</div></nav>
- <main class="ed"><div class="wrap">${tabs[ctab]()}</div></main>
- <div class="savebar"><div class="wrap"><span id="st">${dirty?t('unsaved'):t('saved')}</span><button class="ghost" data-go="v">${t('viewClient')}</button><button class="primary" id="save"${dirty?'':' disabled'}>${t('save')}</button></div></div>`}
-function buyForm(){const p=P();return `<div class="card"><h2>${t('logBuy')}</h2><div class="form" style="margin-top:12px">
- <label class="wide">${t('desc')}<input id="xe-desc" type="text"></label><label>${t('amt')}<input id="xe-amt" type="number" step="any" inputmode="decimal"></label><label>${t('date')}<input id="xe-date" type="date" value="${today()}"></label>
- <label>${t('cat')}<select id="xe-cat">${catOpts('Materiales')}</select></label><label>${t('store')}<input id="xe-store" type="text"></label>
- <label class="wide">${t('linkMat')}<select id="xe-mat"><option value="">${t('noLink')}</option>${p.mats.map((m,i)=>m.b?'':`<option value="${i}">${esc(m.n)}</option>`).join('')}</select></label><button class="primary" data-buy>${t('register')}</button></div></div>`}
-function payForm(){return `<div class="card"><h2>${t('logPay')}</h2><div class="form" style="margin-top:12px"><label>${t('amt')}<input id="xp-amt" type="number" step="any" inputmode="decimal"></label><label>${t('date')}<input id="xp-date" type="date" value="${today()}"></label><label>${t('note')}<input id="xp-note" type="text"></label><button class="primary" data-pay>${t('register')}</button></div></div>`}
-function cDash(){const c=calc(),p=P();const k=(l,v,cls='',e='')=>`<div class="kpi ${cls}"><small>${l}</small><b>${money(v)}</b>${e?`<em>${e}</em>`:''}</div>`;
- return `<h1 style="font-size:clamp(26px,4vw,36px);margin:4px 0 4px">${esc(p.title)}</h1><p class="sub">${esc(p.client)} · ${c.pct}% ${t('done')} · ${t('st_'+p.status)}</p>
- <div class="kpis">${k(t('contract'),c.tot)}${k(t('collected'),c.paid)}${k(t('receivable'),c.bal)}${k(t('budget'),c.bud)}${k(t('spent'),c.spent,'',Math.round(c.bud?c.spent/c.bud*100:0)+'% '+t('of')+' '+t('budget').toLowerCase())}${k(t('left'),c.left,c.left<0?'neg':'')}${k(t('profit'),c.profit,c.profit<0?'neg':'pos',t('profitSub'))}</div>
- <div class="cols">${buyForm()}${payForm()}</div>
- <div class="cols"><div class="card"><h2>${t('byCat')}</h2>${catBars()}</div>
- <div class="card"><h2>${t('recent')}</h2>${I.exps.slice(0,6).map(e=>`<div class="mat"><div><b>${esc(e.desc)}</b><small>${fdate(e.date)} · ${esc(e.store)} · ${esc(e.cat)}</small></div><span class="n">${money(e.amt)}</span></div>`).join('')||`<p class="sub">${t('none')}</p>`}</div></div>`}
-function catBars(){const c=calc();return I.budget.map(b=>{const s=c.byCat(b.cat),pc=b.amt?Math.min(100,s/b.amt*100):0,ov=s>b.amt;return `<div class="cat"><div class="top2"><b>${esc(b.cat)}</b><span>${money(s)} ${t('of')} ${money(b.amt)}</span></div><div class="bar"><i class="${ov?'over':''}" style="width:${ov?100:pc}%"></i></div>${ov?`<small style="color:#d0503a;font-weight:600">${t('over')}: ${money(s-b.amt)}</small>`:''}</div>`}).join('')}
-function cMoney(){const c=calc();
- return buyForm()+`<div class="card"><h2>${t('budget')}</h2><p class="sub">${money(c.spent)} ${t('of')} ${money(c.bud)} · ${t('left')}: <b>${money(c.left)}</b></p>
- ${I.budget.map((b,i)=>`<div class="row r-bud">${inp(`!budget.${i}.cat`,b.cat,'text','ct')}${inp(`!budget.${i}.amt`,b.amt,'number','am')}<span class="spent">${money(c.byCat(b.cat))}</span>${del('!budget',i)}</div>`).join('')}<button class="add" data-add="!budget">${t('addCat')}</button></div>
- <div class="card"><h2>${t('expLog')}</h2><p class="sub">${I.exps.length} · ${money(c.spent)}</p>
- ${I.exps.map((e,i)=>`<div class="row r-exp">${inp(`!exps.${i}.date`,e.date,'date','dt')}${inp(`!exps.${i}.desc`,e.desc,'text','ds')}<select class="cs" data-k="!exps.${i}.cat" aria-label="${t('cat')}">${catOpts(e.cat)}</select>${inp(`!exps.${i}.store`,e.store,'text','st')}${inp(`!exps.${i}.amt`,e.amt,'number','am')}${del('!exps',i)}</div>`).join('')}</div>`}
-function cPays(){const c=calc(),p=P();
- return `<div class="kpis"><div class="kpi"><small>${t('contract')}</small><b>${money(c.tot)}</b></div><div class="kpi"><small>${t('collected')}</small><b>${money(c.paid)}</b></div><div class="kpi"><small>${t('receivable')}</small><b>${money(c.bal)}</b></div></div>`+payForm()+
- `<div class="card"><h2>${t('payments')}</h2>${p.pays.map((x,i)=>`<div class="row r-pay">${inp(`pays.${i}.date`,x.date,'date','dt')}${inp(`pays.${i}.note`,x.note,'text','nt')}${inp(`pays.${i}.amt`,x.amt,'number','am')}${del('pays',i)}</div>`).join('')||`<p class="sub">${t('none')}</p>`}</div>`}
-function cProg(){const p=P(),c=calc();
- return `<div class="card"><h2>${t('steps')}</h2><p class="sub">${c.sd} / ${p.steps.length} · ${c.pct}%</p><div class="bar"><i style="width:${c.pct}%"></i></div>${p.steps.map((s,i)=>`<div class="row r-step"><input type="checkbox" class="chk" data-k="steps.${i}.done"${s.done?' checked':''} aria-label="done">${inp(`steps.${i}.t`,s.t,'text','tt')}${inp(`steps.${i}.date`,s.date,'date','d')}${del('steps',i)}</div>`).join('')}<button class="add" data-add="steps">${t('addStep')}</button></div>
- <div class="card"><h2>${t('updates')}</h2><label>${t('newUpd')}<textarea id="nu" rows="3"></textarea></label><button class="primary" data-post>${t('addUpd')}</button><div style="margin-top:18px">${p.upds.map((u,i)=>`<div class="row r-upd">${inp(`upds.${i}.date`,u.date,'date','dt')}${inp(`upds.${i}.text`,u.text,'text','tx')}${del('upds',i)}</div>`).join('')}</div></div>`}
-function cMats(){const p=P(),c=calc();
- return `<div class="card"><h2>${t('materials')}</h2><p class="sub">${c.mb} / ${p.mats.length} ${t('purchased').toLowerCase()}. ${t('matPriv')}</p>${p.mats.map((m,i)=>`<div class="row r-mat2"><input type="checkbox" class="chk" data-k="mats.${i}.b"${m.b?' checked':''} aria-label="${t('purchased')}">${inp(`mats.${i}.n`,m.n,'text','nm')}${inp(`mats.${i}.q`,m.q,'number','q')}${inp(`mats.${i}.u`,m.u,'text','u')}${inp(`mats.${i}.d`,m.d,'date','dt')}${del('mats',i)}</div>`).join('')}<button class="add" data-add="mats">${t('addMat')}</button><p class="hint">✓ = ${t('purchased')} · ${t('qty')} · ${t('unit')} · ${t('datePaid')}</p></div>`}
-function cEst(){const p=P(),c=calc();
- return `<div class="card"><h2>${t('estimate')}</h2><p class="sub">${t('materials')}: <b>${money(c.subM)}</b> · ${t('labor')}: <b>${money(c.subL)}</b> · ${t('taxMat')}: <b>${money(c.tax)}</b> · ${t('total')}: <b>${money(c.tot)}</b></p>${p.items.map((x,i)=>`<div class="row r-item">${inp(`items.${i}.d`,x.d,'text','dd')}<select class="tp" data-k="items.${i}.k" aria-label="type"><option value="mat"${x.k!=='lab'?' selected':''}>${t('materials')}</option><option value="lab"${x.k==='lab'?' selected':''}>${t('labor')}</option></select>${inp(`items.${i}.q`,x.q,'number','q')}${inp(`items.${i}.p`,x.p,'number','p')}${del('items',i)}</div>`).join('')}<button class="add" data-add="items">${t('addItem')}</button><label style="max-width:200px;margin-top:14px">${t('taxp')}${inp('tax',p.tax,'number')}</label></div>`}
-function cProj(){const p=P();
- return `<div class="card"><h2>${t('projInfo')}</h2><p class="sample">${t('sample')}</p><div class="grid2" style="margin-top:12px">
- <label>${t('clientName')}${inp('client',p.client)}</label><label>${t('ptitle')}${inp('title',p.title)}</label>
- <label>${t('address')}${inp('address',p.address)}</label><label>${t('status')}<select data-k="status">${['planning','progress','paused','done'].map(s=>`<option value="${s}"${p.status===s?' selected':''}>${t('st_'+s)}</option>`).join('')}</select></label>
- <label>${t('start')}${inp('start',p.start,'date')}</label><label>${t('end')}${inp('end',p.end,'date')}</label></div></div>
- <div class="card"><h2>${t('contactInfo')}</h2><div class="grid2"><label>${t('cname')}${inp('@name',S.contact.name)}</label><label>${t('phone')}${inp('@phone',S.contact.phone,'tel')}</label><label>${t('email')}${inp('@email',S.contact.email,'email')}</label></div><p class="hint">${t('share')}</p></div>
- <div class="card"><h2>${t('changePin')}</h2><div class="form" style="margin-top:12px"><label>${t('newPin')}<input id="np" type="password" inputmode="numeric" autocomplete="off"></label><button class="primary" data-newpin>${t('changePin')}</button></div></div>`}
-
-function render(){document.documentElement.lang=L;const y=scrollY;app.innerHTML=role==='c'?(I?contractor():lock()):client();document.title=role==='c'?'Sonec · '+t('contractor'):'Sonec · '+(L==='es'?'Mi Proyecto':'My Project');scrollTo(0,y)}
-function obj(k){if(k[0]==='!')return[I,k.slice(1)];return[P(),k]}
-function setK(k,v){if(k[0]==='@'){S.contact[k.slice(1)]=v;return}let[o,path]=obj(k);const ps=path.split('.');while(ps.length>1)o=o[ps.shift()];o[ps[0]]=v}
-function arr(a){const[o,k]=obj(a);return o[k]}
-function mark(){dirty=true;const st=$('#st'),b=$('#save');if(st)st.textContent=t('unsaved');if(b)b.disabled=false}
-function toast(msg,undo){document.querySelector('.toast')?.remove();const d=document.createElement('div');d.className='toast';d.innerHTML=`<span>${msg}</span>${undo?`<button>${t('undo')}</button>`:''}`;document.body.appendChild(d);
- if(undo)d.querySelector('button').onclick=()=>{S=undoSnap.S;I=undoSnap.I;d.remove();mark();render()};clearTimeout(tmr);tmr=setTimeout(()=>d.remove(),5000)}
-const snap=()=>{undoSnap={S:structuredClone(S),I:structuredClone(I)}};
-const blank={items:{d:'',k:'mat',q:1,p:0},mats:{n:'',q:1,u:'',b:false,d:''},steps:{t:'',done:false,date:''},'!budget':{cat:'',amt:0}};
-
-app.addEventListener('input',e=>{const k=e.target.dataset.k;if(!k)return;let v=e.target.type==='checkbox'?e.target.checked:e.target.value;if(e.target.type==='number')v=v===''?0:+v;setK(k,v);
- if(/^mats\.\d+\.b$/.test(k)&&v){const m=P().mats[+k.split('.')[1]];if(!m.d)m.d=today()}
- mark();if(e.target.type==='checkbox'||e.target.tagName==='SELECT')render()});
-app.addEventListener('change',e=>{if(/^!budget\.\d+\.(cat|amt)$/.test(e.target.dataset.k||''))render()});
-app.addEventListener('submit',async e=>{e.preventDefault();if(e.target.id!=='lockf')return;const a=$('#pin1').value.trim(),b=$('#pin2')?.value.trim();
- if(S.vault){try{I=await open_(S.vault,a);PIN=a;lockErr='';ctab='dash';render()}catch(_){lockErr=t('badPin');render();$('#pin1').focus()}}
- else{if(a.length<4){lockErr=t('pinShort')}else if(a!==b){lockErr=t('pinMatch')}else{PIN=a;I=S.seed||{budget:[{cat:'Materiales',amt:0},{cat:'Mano de obra',amt:0}],exps:[],notes:''};lockErr='';mark()}render();if(dirty)mark()}});
-app.addEventListener('click',e=>{const b=e.target.closest('button');if(!b||(b.type==='submit'&&b.form))return;const d=b.dataset;const num=id=>+($(id).value||0);
- if(d.lang){L=d.lang;S.lang=L;render()}
- else if(d.tab){tab=d.tab;render();$('.tabs').scrollIntoView({block:'start'})}
- else if(d.ctab){ctab=d.ctab;render();scrollTo(0,0)}
- else if(d.mf){mf=d.mf;render()}
- else if(d.go){role=d.go;try{history.replaceState(null,'',role==='c'?'#contractor':location.pathname+location.search)}catch(_){}render();scrollTo(0,0)}
- else if('lock' in d){I=null;PIN=null;render()}
- else if(d.add){arr(d.add).push({...blank[d.add]});mark();render()}
- else if(d.del){snap();const k=d.del.lastIndexOf('.');arr(d.del.slice(0,k)).splice(+d.del.slice(k+1),1);mark();render();toast(t('removed'),true)}
- else if('post' in d){const v=$('#nu').value.trim();if(!v)return;P().upds.unshift({date:today(),text:v});mark();render()}
- else if('buy' in d){const desc=$('#xe-desc').value.trim(),amt=num('#xe-amt');if(!desc&&!amt){$('#xe-desc').focus();return}snap();
-  const mi=$('#xe-mat').value,date=$('#xe-date').value||today();I.exps.unshift({date,desc:desc||P().mats[mi]?.n||'',cat:$('#xe-cat').value,store:$('#xe-store').value.trim(),amt});
-  if(mi!==''){const m=P().mats[+mi];m.b=true;m.d=date}I.exps.sort((a,b)=>b.date.localeCompare(a.date));mark();render();toast(t('buyOk'),true)}
- else if('pay' in d){const amt=num('#xp-amt');if(!amt){$('#xp-amt').focus();return}snap();P().pays.push({date:$('#xp-date').value||today(),note:$('#xp-note').value.trim(),amt});P().pays.sort((a,b)=>a.date.localeCompare(b.date));mark();render();toast(t('payOk'),true)}
- else if('newpin' in d){const v=$('#np').value.trim();if(v.length<4){toast(t('pinShort'));return}PIN=v;mark();toast(t('pinChanged'))}
- else if(b.id==='save')save();
-});
-addEventListener('hashchange',()=>{role=location.hash==='#contractor'?'c':'v';render()});
-addEventListener('beforeunload',e=>{if(dirty&&I)e.preventDefault()});
-
-function buildDoc(){const json=JSON.stringify(S).replace(/</g,'\\u003c');
- return '<!DOCTYPE html>\n<html lang="'+L+'">\n<head>\n<meta charset="utf-8">\n<meta name="viewport" content="width=device-width, initial-scale=1">\n<title>Sonec · Mi Proyecto</title>\n<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Barlow:wght@400;500;600;700&family=Barlow+Semi+Condensed:wght@600;700&family=Montserrat:wght@600;700&display=swap">\n<style id="css">'+SRC_CSS+'</style>\n</head>\n<body>\n<script id="data" type="application/json">'+json+'<\/script>\n<div id="app"></div>\n<script id="js">'+SRC_JS+'<\/script>\n</body>\n</html>\n'}
-let art=null;
-async function save(){const b=$('#save'),st=$('#st');b.disabled=true;st.textContent=t('saving');
- try{if(I&&PIN){S.vault=await seal(I,PIN);delete S.seed}}catch(err){st.textContent=String(err);b.disabled=false;return}
- if(art){try{dirty=false;try{sessionStorage.setItem('sonec-role',role)}catch(_){}await art.publish(buildDoc());st.textContent=t('saved')}catch(err){dirty=true;b.disabled=false;const c=String(err&&(err.code||err.message||err));st.textContent=/not_granted|not_writer/.test(c)?t('noPerm'):t('unsaved')+(/conflict/.test(c)?'':' ('+c+')')}}
- else{try{localStorage.setItem('sonec-state',JSON.stringify(S))}catch(_){}dirty=false;try{const a=document.createElement('a');a.href=URL.createObjectURL(new Blob([buildDoc()],{type:'text/html'}));a.download='index.html';document.body.appendChild(a);a.click();a.remove();st.textContent=t('gh')}catch(_){st.textContent=t('local')}}}
-try{if(sessionStorage.getItem('sonec-role')==='c'){role='c';sessionStorage.removeItem('sonec-role')}}catch(_){}
-render();
-if(role!=='c')splash();
-(window.claude?.use?window.claude.use('artifact'):Promise.resolve(null)).then(a=>{art=a;if(!a){try{const s=localStorage.getItem('sonec-state');if(s){S=JSON.parse(s);if(!I)render()}}catch(_){}}}).catch(()=>{});
+  "@context": "https://schema.org",
+  "@type": "GeneralContractor",
+  "name": "Grupo Sonec Remodelación",
+  "alternateName": "Victor Sosa 2 Construction",
+  "url": "https://cgmillan1.github.io/sonec/",
+  "logo": "https://cgmillan1.github.io/sonec/Sonec-logo-2048.png",
+  "image": "https://cgmillan1.github.io/sonec/img/13-terminado-noche.jpg",
+  "telephone": "+1-385-266-0675",
+  "areaServed": [
+    { "@type": "AdministrativeArea", "name": "Utah County, Utah" },
+    { "@type": "AdministrativeArea", "name": "Salt Lake County, Utah" }
+  ],
+  "knowsLanguage": ["en", "es"],
+  "makesOffer": [
+    { "@type": "Offer", "itemOffered": { "@type": "Service", "name": "Basement finishing" } },
+    { "@type": "Offer", "itemOffered": { "@type": "Service", "name": "Roofing" } },
+    { "@type": "Offer", "itemOffered": { "@type": "Service", "name": "Decks and pergolas" } },
+    { "@type": "Offer", "itemOffered": { "@type": "Service", "name": "Outdoor kitchens" } },
+    { "@type": "Offer", "itemOffered": { "@type": "Service", "name": "Interior remodeling" } },
+    { "@type": "Offer", "itemOffered": { "@type": "Service", "name": "Framing and additions" } }
+  ]
 }
 </script>
+</head>
+<body>
+<a class="skiplink" href="#main" data-i18n="skip">Skip to content</a>
+
+<header class="nav" id="top">
+  <div class="wrap">
+    <a class="brand" href="#top" aria-label="Grupo Sonec">
+      <svg class="mk" viewBox="-80 -80 160 160" aria-hidden="true"><defs><linearGradient id="ncu" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#f3a26a"/><stop offset=".45" stop-color="#d06a2f"/><stop offset="1" stop-color="#8e3f17"/></linearGradient><linearGradient id="nag" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#fff"/><stop offset=".5" stop-color="#b9bec5"/><stop offset=".55" stop-color="#8d939b"/><stop offset="1" stop-color="#e3e6ea"/></linearGradient></defs><path d="M-60.6,30 V-35 L0,-70 L60.6,-35 V35 L0,70" fill="none" stroke="url(#nag)" stroke-width="12"/><path d="M33,-30 H-18 L-30,-18 V-8 L-18,4 H18 L30,16 V26 L18,38 H-33" fill="none" stroke="url(#ncu)" stroke-width="15"/><path d="M-62,70 L-42,42 L-22,70 Z" fill="url(#nag)"/></svg>
+      <span><b>SONEC</b><small data-i18n="brandSub">Construction &amp; remodeling</small></span>
+    </a>
+    <nav aria-label="Main">
+      <a href="#services" data-i18n="navServices">Services</a>
+      <a href="#work" data-i18n="navWork">Our work</a>
+      <a href="#app" data-i18n="navApp">Your project</a>
+      <a href="#estimate" data-i18n="navEstimate">Estimate</a>
+    </nav>
+    <div class="seg" role="group" aria-label="Language / Idioma"><button type="button" data-lang="es" aria-pressed="false">ES</button><button type="button" data-lang="en" aria-pressed="true">EN</button></div>
+    <a class="callbtn" href="tel:+13852660675"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6.6 10.8a15.1 15.1 0 0 0 6.6 6.6l2.2-2.2a1 1 0 0 1 1-.25 11.4 11.4 0 0 0 3.6.57 1 1 0 0 1 1 1V20a1 1 0 0 1-1 1A17 17 0 0 1 3 4a1 1 0 0 1 1-1h3.5a1 1 0 0 1 1 1c0 1.25.2 2.45.57 3.57a1 1 0 0 1-.25 1z"/></svg><span class="sr" data-i18n="call">Call</span><span class="num">(385) 266-0675</span></a>
+  </div>
+</header>
+
+<main id="main" tabindex="-1">
+<section class="hero">
+  <img src="img/13-terminado-noche.jpg" srcset="img/13-terminado-noche-sm.jpg 800w, img/13-terminado-noche.jpg 1600w" sizes="100vw" alt="" data-i18n-alt="heroAlt" width="1600" height="1200" fetchpriority="high">
+  <div class="wrap">
+    <h1 data-i18n="heroH">Decks, basements, roofs and remodels in Utah</h1>
+    <p class="lead" data-i18n="heroP">From the first footing to the last light. Licensed and insured, serving Utah County and Salt Lake County, in English and Spanish.</p>
+    <div class="ctas">
+      <a class="btn primary" href="#estimate" data-i18n="ctaEstimate">Request an estimate</a>
+      <a class="btn ghost" href="tel:+13852660675"><span data-i18n="ctaCall">Call</span>&nbsp;(385) 266-0675</a>
+    </div>
+    <ul class="trust">
+      <li data-i18n="trust1">Licensed and insured in Utah</li>
+      <li data-i18n="trust2">Utah County and Salt Lake County</li>
+      <li data-i18n="trust3">Se habla español</li>
+    </ul>
+  </div>
+</section>
+
+<section class="band" id="services" aria-labelledby="sh">
+  <div class="wrap">
+    <h2 id="sh" data-i18n="servH">What we build</h2>
+    <p class="sub" data-i18n="servP">One crew from start to finish, for projects big and small.</p>
+    <div class="svc">
+      <article><svg viewBox="0 0 48 48" aria-hidden="true"><path d="M6 42h36M10 42V22l14-12 14 12v20M18 42V30h12v12"/></svg><h3 data-i18n="s1h">Basement finishing</h3><p data-i18n="s1p">Framing, drywall and finishes that turn an empty basement into rooms your family will use.</p></article>
+      <article><svg viewBox="0 0 48 48" aria-hidden="true"><path d="M4 26 24 8l20 18M10 21v4M38 21v4M14 16l10-8 10 8"/><path d="M8 32h32M8 38h32"/></svg><h3 data-i18n="s2h">Roofing</h3><p data-i18n="s2p">Roof repairs and replacements, done right and cleaned up when we leave.</p></article>
+      <article><svg viewBox="0 0 48 48" aria-hidden="true"><path d="M4 30h40M4 34h40M8 34v8M40 34v8M24 34v8M6 30V12h36v18M6 12l6-4h24l6 4"/></svg><h3 data-i18n="s3h">Decks and pergolas</h3><p data-i18n="s3p">Composite and wood decks, stairs, railings and covered pergolas built for Utah weather.</p></article>
+      <article><svg viewBox="0 0 48 48" aria-hidden="true"><path d="M4 22h40v20H4zM4 28h40M12 22v-6h10v6M30 34h8M10 34h8"/><path d="M15 12c0-3 3-3 3-6M20 12c0-3 3-3 3-6"/></svg><h3 data-i18n="s4h">Outdoor kitchens</h3><p data-i18n="s4p">Built-in grills, stone, countertops, sinks and lighting to cook and gather outside.</p></article>
+      <article><svg viewBox="0 0 48 48" aria-hidden="true"><path d="M6 42h36M10 42V18h28v24M10 26h28M16 18V8h16v10M22 32h4"/></svg><h3 data-i18n="s5h">Interior remodeling</h3><p data-i18n="s5p">Kitchens, bathrooms, floors and walls, from demolition to the final details.</p></article>
+      <article><svg viewBox="0 0 48 48" aria-hidden="true"><path d="M6 42h36M8 42V12h32v30M8 12l16-6 16 6M16 12v30M24 12v30M32 12v30M8 24h32"/></svg><h3 data-i18n="s6h">Framing and additions</h3><p data-i18n="s6p">Walls, structure and framing for new rooms, additions and outdoor spaces.</p></article>
+    </div>
+  </div>
+</section>
+
+<section class="band dark" id="work" aria-labelledby="wh">
+  <div class="wrap workhead">
+    <div><h2 id="wh" data-i18n="workH">One project, start to finish</h2>
+    <p class="sub" data-i18n="workP">A composite deck, a covered pergola and an outdoor kitchen with a built-in grill, in a backyard in Utah. Swipe through how we built it.</p></div>
+    <div class="stripnav"><button type="button" data-strip="-1" aria-label="Previous photos" data-i18n-aria="prev"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M15 5l-7 7 7 7"/></svg></button><button type="button" data-strip="1" aria-label="Next photos" data-i18n-aria="next"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 5l7 7-7 7"/></svg></button></div>
+  </div>
+  <div class="strip" role="region" aria-labelledby="wh" tabindex="0">
+    <ol>
+      <li><img src="img/02-base-sm.jpg" alt="" loading="lazy" width="800" height="432"><b>1</b><span data-i18n="w1">Footings and base</span></li>
+      <li><img src="img/01-estructura-sm.jpg" alt="" loading="lazy" width="800" height="450"><b>2</b><span data-i18n="w2">Deck framing</span></li>
+      <li><img src="img/03-deck-sm.jpg" alt="" loading="lazy" width="800" height="600"><b>3</b><span data-i18n="w3">Composite decking</span></li>
+      <li><img src="img/04-paredes-sm.jpg" alt="" loading="lazy" width="800" height="450"><b>4</b><span data-i18n="w4">Privacy wall framing</span></li>
+      <li><img src="img/05-deck-escalones-sm.jpg" alt="" loading="lazy" width="800" height="600"><b>5</b><span data-i18n="w5">Stairs and cement board</span></li>
+      <li><img src="img/06-postes-sm.jpg" alt="" loading="lazy" width="600" height="800"><b>6</b><span data-i18n="w6">Posts and beams</span></li>
+      <li><img src="img/07-pergola-sm.jpg" alt="" loading="lazy" width="800" height="600"><b>7</b><span data-i18n="w7">Pergola structure</span></li>
+      <li><img src="img/08-cocina-marco-sm.jpg" alt="" loading="lazy" width="800" height="450"><b>8</b><span data-i18n="w8">Outdoor kitchen frame</span></li>
+      <li><img src="img/12-pergola-tarde-sm.jpg" alt="" loading="lazy" width="800" height="600"><b>9</b><span data-i18n="w9">Roof panels on</span></li>
+      <li><img src="img/09-panel-sm.jpg" alt="" loading="lazy" width="800" height="600"><b>10</b><span data-i18n="w10">Wall panels</span></li>
+      <li><img src="img/10-cocina-piedra-sm.jpg" alt="" loading="lazy" width="800" height="600"><b>11</b><span data-i18n="w11">Stone veneer</span></li>
+      <li><img src="img/11-cubierta-sm.jpg" alt="" loading="lazy" width="800" height="600"><b>12</b><span data-i18n="w12">Countertop and sink</span></li>
+      <li><img src="img/13-terminado-noche-sm.jpg" alt="" loading="lazy" width="800" height="600"><b>13</b><span data-i18n="w13">First night under the lights</span></li>
+    </ol>
+  </div>
+</section>
+
+<section class="band" id="app" aria-labelledby="ah">
+  <div class="wrap appgrid">
+    <div>
+      <h2 id="ah" data-i18n="appH">Follow your project from your phone</h2>
+      <p class="sub" data-i18n="appP">Every client gets a private page for their project. No more wondering what is happening at your house.</p>
+      <ul class="checks">
+        <li data-i18n="a1">Progress, steps done and what comes next</li>
+        <li data-i18n="a2">Your estimate, split into materials and labor</li>
+        <li data-i18n="a3">How much you have paid and how much is left</li>
+        <li data-i18n="a4">Approve any change before the work is done</li>
+        <li data-i18n="a5">Photos of every stage, and messages with the crew</li>
+      </ul>
+    </div>
+    <div class="phones" aria-hidden="true">
+      <figure class="phone"><img data-shot="resumen" src="img/app-resumen-en.jpg" alt="" loading="lazy" width="600" height="1299"></figure>
+      <figure class="phone"><img data-shot="pagos" src="img/app-pagos-en.jpg" alt="" loading="lazy" width="600" height="1299"></figure>
+      <figure class="phone"><img data-shot="cambios" src="img/app-cambios-en.jpg" alt="" loading="lazy" width="600" height="1299"></figure>
+    </div>
+  </div>
+</section>
+
+<section class="band soft" aria-labelledby="ph">
+  <div class="wrap">
+    <h2 id="ph" data-i18n="procH">How we work</h2>
+    <ol class="steps">
+      <li><b>1</b><h3 data-i18n="p1h">Visit and estimate</h3><p data-i18n="p1p">We come to your home, measure and send you a clear estimate.</p></li>
+      <li><b>2</b><h3 data-i18n="p2h">Plan and approval</h3><p data-i18n="p2p">You approve the estimate and the payment schedule before we start.</p></li>
+      <li><b>3</b><h3 data-i18n="p3h">We build</h3><p data-i18n="p3p">Our crew gets to work and posts updates and photos to your project page.</p></li>
+      <li><b>4</b><h3 data-i18n="p4h">Final walkthrough</h3><p data-i18n="p4p">We walk the finished project with you and close every detail.</p></li>
+    </ol>
+  </div>
+</section>
+
+<section class="band" id="estimate" aria-labelledby="eh">
+  <div class="wrap estgrid">
+    <div>
+      <h2 id="eh" data-i18n="estH">Request an estimate</h2>
+      <p class="sub" data-i18n="estP">Tell us about your project and we will call you back. You can also call or send a WhatsApp.</p>
+      <div class="contactbox">
+        <a class="btn primary" href="tel:+13852660675"><span data-i18n="ctaCall">Call</span>&nbsp;(385) 266-0675</a>
+        <a class="btn outline" href="https://wa.me/13852660675" target="_blank" rel="noopener">WhatsApp</a>
+      </div>
+      <p class="area"><b data-i18n="areaH">Where we work</b><br><span data-i18n="areaP">Utah County and Salt Lake County, Utah. Licensed and insured.</span></p>
+    </div>
+    <form id="estf" class="card" novalidate>
+      <div class="hp" aria-hidden="true"><label>Website <input name="website" tabindex="-1" autocomplete="off"></label></div>
+      <label><span data-i18n="fName">Name</span> <i aria-hidden="true">*</i><input name="name" required autocomplete="name" maxlength="120"></label>
+      <div class="two">
+        <label><span data-i18n="fPhone">Phone</span><input name="phone" type="tel" autocomplete="tel" maxlength="40"></label>
+        <label><span data-i18n="fEmail">Email</span><input name="email" type="email" autocomplete="email" maxlength="160"></label>
+      </div>
+      <p class="hint" data-i18n="fContact">Phone or email, so we can reach you.</p>
+      <div class="two">
+        <label><span data-i18n="fCity">City</span><input name="city" autocomplete="address-level2" maxlength="120"></label>
+        <label><span data-i18n="fService">Service</span>
+          <select name="service">
+            <option value="Basement finishing" data-i18n="s1h">Basement finishing</option>
+            <option value="Roofing" data-i18n="s2h">Roofing</option>
+            <option value="Decks and pergolas" data-i18n="s3h">Decks and pergolas</option>
+            <option value="Outdoor kitchens" data-i18n="s4h">Outdoor kitchens</option>
+            <option value="Interior remodeling" data-i18n="s5h">Interior remodeling</option>
+            <option value="Framing and additions" data-i18n="s6h">Framing and additions</option>
+            <option value="Other" data-i18n="other">Something else</option>
+          </select></label>
+      </div>
+      <label><span data-i18n="fMsg">Tell us about the project</span><textarea name="message" rows="4" maxlength="2000"></textarea></label>
+      <div class="err" id="ferr" role="alert"></div>
+      <button class="btn primary wide" type="submit" data-i18n="fSend">Send request</button>
+      <div class="ok" id="fok" role="status" hidden><b data-i18n="okH">Thank you!</b> <span data-i18n="okP">We received your request and will contact you soon.</span></div>
+    </form>
+  </div>
+</section>
+</main>
+
+<footer class="foot">
+  <div class="wrap">
+    <div><b>Grupo Sonec Remodelación</b><br>Victor Sosa 2 Construction<br><span data-i18n="trust1">Licensed and insured in Utah</span></div>
+    <div><a href="tel:+13852660675">(385) 266-0675</a><br><a href="https://wa.me/13852660675" target="_blank" rel="noopener">WhatsApp</a></div>
+    <div><span data-i18n="areaP">Utah County and Salt Lake County, Utah. Licensed and insured.</span><br><a href="admin.html" data-i18n="contractorLogin">Contractor sign in</a></div>
+  </div>
+</footer>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.119.0/dist/umd/supabase.js" integrity="sha384-uteMfOloLDGt042uDz+xHGF3ym63/WQ6rFq7murQRG8Ih7QrXGEGNtWd8688sb4O" crossorigin="anonymous" defer></script>
+<script src="config.js" defer></script>
+<script src="api.js" defer></script>
+<script src="site.js" defer></script>
 </body>
 </html>
