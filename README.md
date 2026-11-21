@@ -80,6 +80,12 @@ Si ya habías corrido `schema.sql` antes, vuelve a correrlo completo cuando haya
 - Si un enlace de cliente llega a otra persona, en la pestaña **Proyecto** presiona **Crear enlace nuevo**. El anterior deja de funcionar.
 - Los montos no pueden ser negativos, y el cliente puede mandar hasta 10 mensajes cada 10 minutos.
 
+## Documentos y contratos
+- En cada proyecto, la pestaña **Documentos** descarga el **estimado en PDF**, crea el **contrato** y, al final, el **documento de terminación** con cada monto agregado o cambiado desde el contrato.
+- Antes del primer contrato, llena **Datos de la empresa para contratos** (nombre legal, número de licencia DOPL, dirección y garantía).
+- Cada documento guarda una copia exacta de los montos del día en que se creó. Márcalo como **Enviado** o **Firmado** para que el cliente lo vea en su página.
+- El contrato es una plantilla general, no asesoría legal: revísalo con un abogado de Utah antes de usarlo.
+
 ## Fotos
 Las fotos del sitio están en `img/` (versión grande y versión `-sm` para el celular). Se les quitó la ubicación GPS que guarda el iPhone, para no publicar la dirección del cliente. Para cambiar o agregar fotos, mándamelas y las preparo igual.
 

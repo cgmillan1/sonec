@@ -5,7 +5,7 @@
   const ready = !!(cfg.url && cfg.key && window.supabase);
   const sb = ready ? window.supabase.createClient(cfg.url, cfg.key) : null;
   const ok = ({ data, error }) => { if (error) throw new Error(error.message || String(error)); return data; };
-  const CHILD = ['items', 'materials', 'steps', 'updates', 'payments', 'milestones', 'change_orders', 'budget', 'expenses', 'comments'];
+  const CHILD = ['items', 'materials', 'steps', 'updates', 'payments', 'milestones', 'change_orders', 'budget', 'expenses', 'comments', 'documents'];
 
   window.API = {
     ready,

@@ -27,7 +27,7 @@ create table if not exists projects (
   address text default '',
   start_date date,
   end_date date,
-  status text default 'planning' check (status in ('planning','progress','paused','done')),
+  status text default 'estimate_sent',
   tax_rate numeric default 7.25,
   created_at timestamptz default now()
 );
@@ -168,7 +168,8 @@ begin
     'project', json_build_object('id', p.id, 'client_name', p.client_name, 'title', p.title,
        'address', p.address, 'start_date', p.start_date, 'end_date', p.end_date,
        'status', p.status, 'tax_rate', p.tax_rate),
-    'contact', (select json_build_object('company', s.company, 'name', s.contact_name, 'phone', s.phone, 'email', s.email)
+    'contact', (select json_build_object('company', s.company, 'name', s.contact_name, 'phone', s.phone, 'email', s.email,
+                'legal_name', s.legal_name, 'license_no', s.license_no, 'address', s.address)
                 from settings s where s.owner = p.owner),
     'items', coalesce((select json_agg(i order by i.sort, i.description) from (select id, kind, description, qty, price, sort from items where project_id = p.id) i), '[]'),
     'materials', coalesce((select json_agg(m order by m.sort, m.name) from (select id, name, qty, unit, purchased, purchased_on, sort from materials where project_id = p.id) m), '[]'),
@@ -177,7 +178,8 @@ begin
     'payments', coalesce((select json_agg(x order by x.paid_on) from (select id, paid_on, note, amount from payments where project_id = p.id) x), '[]'),
     'milestones', coalesce((select json_agg(x order by x.sort) from (select id, label, amount, sort from milestones where project_id = p.id) x), '[]'),
     'change_orders', coalesce((select json_agg(x order by x.created_at desc) from (select id, title, details, kind, amount, status, decided_by, decided_at, created_at from change_orders where project_id = p.id and status <> 'draft') x), '[]'),
-    'comments', coalesce((select json_agg(x order by x.created_at) from (select id, author, name, body, created_at from comments where project_id = p.id) x), '[]')
+    'comments', coalesce((select json_agg(x order by x.created_at) from (select id, author, name, body, created_at from comments where project_id = p.id) x), '[]'),
+    'documents', coalesce((select json_agg(x order by x.created_at desc) from (select id, kind, lang, snapshot, total, status, signed_by, signed_on, created_at from documents where project_id = p.id and status in ('sent','signed')) x), '[]')
   ) into r;
   return r;
 end $$;
@@ -258,6 +260,43 @@ end $$;
 revoke all on function submit_lead(text, text, text, text, text, text, text) from public;
 grant execute on function submit_lead(text, text, text, text, text, text, text) to anon, authenticated;
 
+-- ---------- Estados del proyecto (versión 3) --------------------------
+-- estimate_sent = Estimado enviado, estimate_accepted = Estimado aceptado,
+-- progress = En progreso, done = Terminado. Pasa los estados viejos a los nuevos.
+alter table projects drop constraint if exists projects_status_check;
+update projects set status = 'estimate_sent' where status = 'planning' or status is null;
+update projects set status = 'progress' where status = 'paused';
+alter table projects alter column status set default 'estimate_sent';
+alter table projects add constraint projects_status_check
+  check (status in ('estimate_sent','estimate_accepted','progress','done'));
+
+-- ---------- Datos para contratos y documentos (versión 3) ------------
+
+alter table settings add column if not exists legal_name text default '';
+alter table settings add column if not exists license_no text default '';
+alter table settings add column if not exists address text default '';
+alter table settings add column if not exists warranty text default '';
+alter table settings add column if not exists extra_terms text default '';
+
+create table if not exists documents (
+  id uuid primary key default gen_random_uuid(),
+  project_id uuid not null references projects on delete cascade,
+  kind text not null check (kind in ('contract','completion')),
+  lang text default 'es' check (lang in ('es','en')),
+  snapshot jsonb not null,            -- copia exacta del estimado, cambios y pagos al crearlo
+  total numeric default 0,
+  status text default 'draft' check (status in ('draft','sent','signed','void')),
+  signed_by text,
+  signed_on date,
+  created_at timestamptz default now()
+);
+alter table documents enable row level security;
+drop policy if exists own_rows on documents;
+create policy own_rows on documents for all to authenticated
+  using (exists (select 1 from projects p where p.id = project_id and p.owner = auth.uid()))
+  with check (exists (select 1 from projects p where p.id = project_id and p.owner = auth.uid()));
+create index if not exists documents_project_idx on documents (project_id);
+
 -- ---------- Reglas de datos (montos, largos, enlaces) ----------------
 -- Se agregan solo si no existen, para poder correr este archivo otra vez.
 
@@ -334,3 +373,19 @@ drop policy if exists sonec_receipts_all on storage.objects;
 create policy sonec_receipts_all on storage.objects for all to authenticated
   using (bucket_id = 'receipts' and public.owns_project_folder(name))
   with check (bucket_id = 'receipts' and public.owns_project_folder(name));
+
+-- ---------- Permisos de la API ----------------------------------------
+-- Funciona aunque "Grant API access to new tables automatically" esté apagado.
+-- El contratista (usuario con sesión) usa las tablas; el público (anon) nunca
+-- las toca directo, solo por las funciones de abajo.
+grant usage on schema public to anon, authenticated;
+do $$
+declare t text;
+begin
+  foreach t in array array['settings','projects','items','materials','steps','updates','payments','milestones','change_orders','budget','expenses','comments','leads','documents'] loop
+    if to_regclass('public.' || t) is not null then
+      execute format('grant select, insert, update, delete on %I to authenticated', t);
+      execute format('revoke all on %I from anon', t);
+    end if;
+  end loop;
+end $$;

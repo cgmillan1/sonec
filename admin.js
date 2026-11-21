@@ -1,6 +1,8 @@
 {
 const S = SONEC, t = S.t, esc = S.esc, money = S.money, fdate = S.fdate, $ = q => document.querySelector(q), app = $('#app');
-let leads = [], lastEmail = '', view = 'boot', B = [], cur = null, ctab = 'dash', settings = {}, busy = false, err = '';
+const STATUSES = ['estimate_sent', 'estimate_accepted', 'progress', 'done'];
+const stOf = p => STATUSES.includes(p.status) ? p.status : (p.status === 'paused' ? 'progress' : 'estimate_sent');
+let pfilter = 'all', creating = false, leads = [], lastEmail = '', view = 'boot', B = [], cur = null, ctab = 'dash', settings = {}, busy = false, err = '';
 S.setLang(S.L);
 
 /* ---------- small builders ---------- */
@@ -29,16 +31,20 @@ function login() {
 const topbar = () => S.header(`<span id="savedot" class="savedot" aria-live="polite"></span><button class="ghost" data-logout style="min-height:40px;padding:6px 12px">${t('logout')}</button>`, `<span class="role">${t('contractor')}</span>`);
 
 function home() {
-  const cs = B.map(b => S.calc(b)), sum = k => cs.reduce((a, c) => a + (c[k] || 0), 0);
+  const shown = B.filter(b => pfilter === 'all' || stOf(b.project) === pfilter);
+  const cs = shown.map(b => S.calc(b)), sum = k => cs.reduce((a, c) => a + (c[k] || 0), 0);
+  const count = s => B.filter(b => stOf(b.project) === s).length;
   const today = S.today(), lim = new Date(Date.now() + 14 * 864e5).toISOString().slice(0, 10);
   const up = B.flatMap(b => b.steps.filter(s => !s.done && s.due_date && s.due_date <= lim).map(s => ({ ...s, pt: b.project.title, late: s.due_date < today }))).sort((a, b) => a.due_date.localeCompare(b.due_date));
   return topbar() + `<main><div class="wrap">
-  <div class="secthead"><h1>${t('projects')}</h1><button class="primary" data-newp>${t('newProject')}</button></div>
+  <div class="secthead"><h1>${t('projects')}</h1>${creating ? '' : `<button class="primary" data-newp>${t('newProject')}</button>`}</div>
+  ${creating ? `<div class="card"><h2>${t('newProjectT')}</h2><form class="form" id="newpf" style="margin-top:12px"><label class="wide">${t('ptitle')} *<input id="np-title" required maxlength="200" placeholder="${t('ptitleEx')}"></label><label>${t('clientName')}<input id="np-client" maxlength="200"></label><label>${t('status')}<select id="np-status">${STATUSES.map(s => `<option value="${s}">${t('st_' + s)}</option>`).join('')}</select></label><div class="wide" style="display:flex;gap:10px;flex-wrap:wrap;margin-bottom:12px"><button class="primary" type="submit">${t('create')}</button><button class="btn2" type="button" data-cancelnew>${t('cancel')}</button></div></form></div>` : ''}
+  ${B.length ? `<div class="filters" role="group" aria-label="${t('status')}">${['all', ...STATUSES].map(s => `<button data-pf="${s}" class="${pfilter === s ? 'on' : ''}" aria-pressed="${pfilter === s}">${s === 'all' ? t('all') : t('st_' + s)} <span class="cnt">${s === 'all' ? B.length : count(s)}</span></button>`).join('')}</div>` : ''}
   ${showInstall() ? `<div class="card" style="display:flex;gap:12px;align-items:center;flex-wrap:wrap"><img src="icon-180.png" alt="" width="48" height="48" style="border-radius:11px"><div style="flex:1 1 220px"><b>${t('installT')}</b><p class="sub" style="margin:2px 0 0">${t('installS')}</p></div><button class="btn2" data-hideinstall>${t('hide')}</button></div>` : ''}
   ${B.length ? `<div class="kpis">${kpi(t('contracts'), sum('tot'))}${kpi(t('collected'), sum('paid'))}${kpi(t('receivable'), sum('bal'))}${kpi(t('spent'), sum('spent'))}${kpi(t('profit'), sum('profit'), sum('profit') < 0 ? 'neg' : 'pos', t('profitSub'))}</div>` : ''}
   ${leadsCard()}
-  <div class="plist">${B.map((b, i) => { const c = cs[i], u = unseen(b); return `<button class="pcard" data-open="${b.project.id}">${u ? `<span class="badge" title="${t('unread')}">${u}</span>` : ''}
-    <span class="who2">${esc(b.project.client_name || '·')}</span><h3>${esc(b.project.title || t('project'))}</h3><span class="pill ${b.project.status === 'done' ? 'paid' : 'next'}">${t('st_' + b.project.status)}</span>
+  <div class="plist">${shown.length ? '' : (B.length ? `<p class="sub">${t('noneInStatus')}</p>` : '')}${shown.map((b, i) => { const c = cs[i], u = unseen(b); return `<button class="pcard" data-open="${b.project.id}">${u ? `<span class="badge" title="${t('unread')}">${u}</span>` : ''}
+    <span class="who2">${esc(b.project.client_name || '·')}</span><h3>${esc(b.project.title || t('project'))}</h3><span class="pill st-${stOf(b.project)}">${t('st_' + stOf(b.project))}</span>
     <div class="bar"><i style="width:${c.pct}%"></i></div><small class="sub">${c.pct}% ${t('done')}</small>
     <dl><dt>${t('contract')}</dt><dd>${money(c.tot)}</dd><dt>${t('collected')}</dt><dd>${money(c.paid)}</dd><dt>${t('spent')}</dt><dd>${money(c.spent)} ${t('of')} ${money(c.bud)}</dd><dt>${t('profit')}</dt><dd style="color:${c.profit < 0 ? '#d0503a' : 'var(--ok)'}">${money(c.profit)}</dd></dl></button>`; }).join('')}</div>
   ${B.length ? '' : `<div class="card" style="text-align:center"><p class="sub">${t('none')}</p><button class="btn2" data-sample>${t('sampleProject')}</button></div>`}
@@ -61,9 +67,11 @@ function leadsCard() {
 }
 function project() {
   const u = unseen(cur), p = cur.project;
-  const tabs = { dash: cDash, money: cMoney, pays: cPays, changes: cChanges, progress: cProgress, materials: cMats, estimate: cEst, messages: cMsgs, project: cProj };
+  const tabs = { dash: cDash, money: cMoney, pays: cPays, changes: cChanges, progress: cProgress, materials: cMats, estimate: cEst, docs: cDocs, messages: cMsgs, project: cProj };
   return topbar() + `<nav class="cbar"><div class="wrap"><button data-home>${t('back')}</button>${Object.keys(tabs).map(k => `<button data-ctab="${k}" class="${ctab === k ? 'on' : ''}">${t(k)}${k === 'messages' && u ? `<span class="badge">${u}</span>` : ''}</button>`).join('')}</div></nav>
-  <main class="ed"><div class="wrap"><div class="secthead"><h1>${esc(p.title || t('project'))}</h1><span class="sub" style="margin:0">${esc(p.client_name)}</span></div>${tabs[ctab]()}</div></main>`;
+  <main class="ed"><div class="wrap"><div class="phead"><label class="sr" for="ptitle-top">${t('ptitle')}</label><input id="ptitle-top" class="titleinp" data-t="projects" data-id="${p.id}" data-f="title" value="${esc(p.title)}" placeholder="${t('ptitleEx')}" maxlength="200">
+  <label class="stlab"><span class="sr">${t('status')}</span><select class="stsel2 st-${stOf(p)}" data-t="projects" data-id="${p.id}" data-f="status">${STATUSES.map(s => `<option value="${s}"${stOf(p) === s ? ' selected' : ''}>${t('st_' + s)}</option>`).join('')}</select></label></div>
+  <p class="sub" style="margin:-4px 0 14px">${esc(p.client_name)}${p.client_name && p.address ? ' · ' : ''}${esc(p.address || '')}</p>${tabs[ctab]()}</div></main>`;
 }
 function buyForm() {
   return `<div class="card"><h2>${t('logBuy')}</h2><form class="form" id="buyf" style="margin-top:12px">
@@ -82,7 +90,8 @@ function catBars(c) {
 }
 function cDash() {
   const c = S.calc(cur);
-  return `<div class="kpis">${kpi(t('contract'), c.tot)}${kpi(t('collected'), c.paid)}${kpi(t('receivable'), c.bal)}${kpi(t('budget'), c.bud)}${kpi(t('spent'), c.spent, '', (c.bud ? Math.round(c.spent / c.bud * 100) : 0) + '% ' + t('of') + ' ' + t('budget').toLowerCase())}${kpi(t('left'), c.left, c.left < 0 ? 'neg' : '')}${kpi(t('profit'), c.profit, c.profit < 0 ? 'neg' : 'pos', t('profitSub'))}</div>
+  const banner = stOf(cur.project) === 'estimate_accepted' && !cur.documents.some(x => x.kind === 'contract' && x.status !== 'void') ? `<div class="card" style="border-color:var(--cu);display:flex;gap:12px;align-items:center;flex-wrap:wrap"><b style="flex:1 1 260px">${t('contractBanner')}</b><button class="primary" data-ctab="docs">${t('goDocs')}</button></div>` : '';
+  return banner + `<div class="kpis">${kpi(t('contract'), c.tot)}${kpi(t('collected'), c.paid)}${kpi(t('receivable'), c.bal)}${kpi(t('budget'), c.bud)}${kpi(t('spent'), c.spent, '', (c.bud ? Math.round(c.spent / c.bud * 100) : 0) + '% ' + t('of') + ' ' + t('budget').toLowerCase())}${kpi(t('left'), c.left, c.left < 0 ? 'neg' : '')}${kpi(t('profit'), c.profit, c.profit < 0 ? 'neg' : 'pos', t('profitSub'))}</div>
   <div class="cols">${buyForm()}${payForm()}</div>
   <div class="cols"><div class="card"><h2>${t('byCat')}</h2>${catBars(c)}</div><div class="card"><h2>${t('recent')}</h2>${expSorted().slice(0, 6).map(e => `<div class="mat"><div><b>${esc(e.description)}</b><small>${fdate(e.spent_on)} · ${esc(e.vendor)} · ${esc(catName(e.budget_id))}</small></div><span class="n">${money(e.amount)}</span></div>`).join('') || `<p class="sub">${t('none')}</p>`}</div></div>`;
 }
@@ -127,10 +136,32 @@ function cMats() {
 }
 function cEst() {
   const c = S.calc(cur), p = cur.project;
-  return `<div class="card"><div class="secthead" style="margin:0"><h2 style="margin-inline-end:auto">${t('estimate')}</h2><button class="btn2" data-print>${t('printEst')}</button></div>
+  return `<div class="card"><div class="secthead" style="margin:0"><h2 style="margin-inline-end:auto">${t('estimate')}</h2><button class="btn2" data-doc="estimate">${t('dlEstimate')}</button></div>
   <p class="sub">${t('materials')}: <b>${money(c.subM)}</b> · ${t('labor')}: <b>${money(c.subL)}</b> · ${t('taxMat')}: <b>${money(c.tax)}</b> · ${t('total')}: <b>${money(c.tot)}</b></p>
   ${sorted('items').map(x => `<div class="row r-item">${fld('items', x, 'description', 'text', 'dd')}${sel('items', x, 'kind', kinds(), 'tp')}${fld('items', x, 'qty', 'number', 'q')}${fld('items', x, 'price', 'number', 'p')}${del('items', x.id)}</div>`).join('')}
   <button class="add" data-add="items">${t('addItem')}</button><label style="max-width:220px;margin-top:14px">${t('taxp')}${fld('projects', p, 'tax_rate', 'number')}</label></div>`;
+}
+const ta = (tb, r, f, rows = 3) => `<textarea rows="${rows}" data-t="${tb}" data-id="${r.id ?? ''}" data-f="${f}" aria-label="${esc(t(f === 'warranty' ? 'warranty' : 'extraTerms'))}" style="display:block;width:100%;margin-top:4px;padding:10px 12px;border:1px solid var(--line);border-radius:10px;background:var(--bg);font-size:16px">${esc(r[f] || '')}</textarea>`;
+let docLang = null;
+function cDocs() {
+  const lang = docLang || S.L, miss = [['legal_name', 'legalName'], ['license_no', 'licenseNo'], ['address', 'bizAddress']].filter(([f]) => !String(settings[f] || '').trim()).map(([, k]) => t(k));
+  const hasContract = cur.documents.some(x => x.kind === 'contract' && x.status !== 'void');
+  const docs = cur.documents.slice().sort((x, y) => String(y.created_at).localeCompare(String(x.created_at)));
+  return `<div class="card"><h2>${t('docs')}</h2><p class="sub">${t('docsSub')}</p>
+  ${miss.length ? `<p class="hint" style="color:#b23a26;font-weight:600">${t('missingFor')}: ${miss.join(', ')}</p>` : ''}
+  <div class="linkbox" style="margin-top:10px"><label style="margin:0">${t('docLang')} <select id="doclang" style="min-height:44px;margin-inline-start:6px">${[['es', 'Español'], ['en', 'English']].map(([v, l]) => `<option value="${v}"${lang === v ? ' selected' : ''}>${l}</option>`).join('')}</select></label></div>
+  <div class="linkbox" style="margin-top:12px"><button class="btn2" data-doc="estimate">${t('dlEstimate')}</button><button class="primary" data-mkdoc="contract">${t('mkContract')}</button><button class="btn2" data-mkdoc="completion">${t('mkCompletion')}</button></div>
+  ${hasContract ? '' : `<p class="hint">${t('noContractYet')}</p>`}<p class="hint">${t('docsHint')}</p></div>
+  <div class="card">${docs.map(x => `<div class="co"><div class="top2"><b>${t('doc_' + x.kind)} · ${(x.lang || 'es').toUpperCase()}</b><b class="amt">${money(x.total)}</b></div>
+    <small class="sub">${fdate(x.created_at)}</small>
+    <div class="acts">${sel('documents', x, 'status', ['draft', 'sent', 'signed', 'void'].map(s => [s, t('ds_' + s)]), 'stsel')}<button class="btn2" data-dl="${x.id}">${t('download')}</button>${x.status === 'draft' ? del('documents', x.id) : ''}</div>
+    ${x.status === 'signed' ? `<div class="grid2" style="margin-top:10px"><label>${t('signedBy')}${fld('documents', x, 'signed_by')}</label><label>${t('signedOn')}${fld('documents', x, 'signed_on', 'date')}</label></div>` : ''}</div>`).join('') || `<p class="sub">${t('none')}</p>`}</div>
+  <div class="card"><h2>${t('contractData')}</h2><p class="sub">${t('contractDataSub')}</p><div class="grid2" style="margin-top:12px">
+  <label>${t('legalName')}${fld('settings', settings, 'legal_name')}</label><label>${t('licenseNo')}${fld('settings', settings, 'license_no')}</label>
+  <label>${t('bizAddress')}${fld('settings', settings, 'address')}</label><label>${t('phone')}${fld('settings', settings, 'phone', 'tel')}</label></div>
+  <label>${t('warranty')}${ta('settings', settings, 'warranty')}</label><p class="hint">${t('warrantyHint')}</p>
+  <label style="margin-top:12px">${t('extraTerms')}${ta('settings', settings, 'extra_terms', 4)}</label>
+  <p class="hint" style="margin-top:12px">${t('legalNote')}</p></div>`;
 }
 function cMsgs() {
   const me = settings.contact_name || t('contractor');
@@ -141,7 +172,7 @@ function cProj() {
   const p = cur.project, link = new URL('proyecto.html?p=' + p.client_token, location.href).href, wa = (p.client_phone || '').replace(/\D/g, '');
   const msg = encodeURIComponent((S.L === 'es' ? 'Hola, aquí puedes ver tu proyecto con Sonec: ' : 'Hi, here you can follow your project with Sonec: ') + link);
   return `<div class="card"><h2>${t('projInfo')}</h2><div class="grid2" style="margin-top:12px">
-  <label>${t('ptitle')}${fld('projects', p, 'title')}</label><label>${t('status')}${sel('projects', p, 'status', ['planning', 'progress', 'paused', 'done'].map(s => [s, t('st_' + s)]))}</label>
+  <label>${t('ptitle')}${fld('projects', p, 'title')}</label><label>${t('status')}${sel('projects', { ...p, status: stOf(p) }, 'status', STATUSES.map(s => [s, t('st_' + s)]))}</label>
   <label>${t('clientName')}${fld('projects', p, 'client_name')}</label><label>${t('address')}${fld('projects', p, 'address')}</label>
   <label>${t('clientPhone')}${fld('projects', p, 'client_phone', 'tel')}</label><label>${t('clientEmail')}${fld('projects', p, 'client_email', 'email')}</label>
   <label>${t('start')}${fld('projects', p, 'start_date', 'date')}</label><label>${t('end')}${fld('projects', p, 'end_date', 'date')}</label></div></div>
@@ -189,12 +220,14 @@ async function save(tb, id, f, v) {
 
 app.addEventListener('change', async e => {
   const n = e.target, d = n.dataset;
+  if (n.id === 'doclang') { docLang = n.value; return; }
   if (n.id === 'nuf') { pending = [...n.files]; const c = $('#nuc'); if (c) c.textContent = pending.length ? pending.length + ' ' + t('photosSel') : ''; return; }
   if (!d.f) return;
   let v = n.type === 'checkbox' ? n.checked : n.value;
   if (n.type === 'number') v = v === '' ? 0 : +v;
   if (n.type === 'date' && !v) v = null;
   if (d.f === 'budget_id' && !v) v = null;
+  if (d.t === 'projects' && d.f === 'title' && !String(v).trim()) { n.value = rowOf('projects', d.id).title || ''; return n.focus(); }
   const okSaved = await save(d.t, d.id, d.f, v);
   if (okSaved && (n.type !== 'text' || /category|title/.test(d.f) && ctab !== 'progress') && n.tagName !== 'TEXTAREA') render();
 });
@@ -208,6 +241,11 @@ app.addEventListener('submit', async e => {
       try { await API.signIn(lastEmail, pw); await loadAll(); view = 'home'; const h = location.hash.slice(1); busy = false; if (h && B.some(b => b.project.id === h)) return openProject(h); }
       catch (x) { err = x.message; view = 'login'; }
       busy = false; return render();
+    }
+    if (id === 'newpf') {
+      const title = $('#np-title').value.trim(); if (!title) return $('#np-title').focus();
+      const p = await API.insert('projects', { title, client_name: $('#np-client').value.trim(), status: $('#np-status').value });
+      creating = false; B.unshift(blank(p)); ctab = 'project'; return openProject(p.id);
     }
     if (id === 'buyf') {
       const desc = $('#xe-desc').value.trim(), amount = +$('#xe-amt').value || 0, mat = $('#xe-mat').value, f = $('#xe-file').files[0];
@@ -247,7 +285,7 @@ app.addEventListener('click', async e => {
     else if (d.leadst) { const [id, st] = d.leadst.split(':'); const l = leads.find(x => x.id === id); Object.assign(l, await API.update('leads', id, { status: st })); render(); }
     else if (d.leadp) {
       const l = leads.find(x => x.id === d.leadp);
-      const p = await API.insert('projects', { title: l.service || (S.L === 'es' ? 'Nuevo proyecto' : 'New project'), client_name: l.name, client_phone: l.phone, client_email: l.email, address: l.city, status: 'planning' });
+      const p = await API.insert('projects', { title: l.service || (S.L === 'es' ? 'Nuevo proyecto' : 'New project'), client_name: l.name, client_phone: l.phone, client_email: l.email, address: l.city, status: 'estimate_sent' });
       Object.assign(l, await API.update('leads', l.id, { status: 'won', project_id: p.id }));
       const nb = blank(p);
       if (l.message) { try { nb.comments.push(await API.insert('comments', { project_id: p.id, author: 'client', name: l.name, body: l.message, seen: true })); } catch (_) {} }
@@ -256,7 +294,9 @@ app.addEventListener('click', async e => {
     else if (d.open) { ctab = 'dash'; openProject(d.open); }
     else if ('home' in d) { view = 'home'; cur = null; try { history.replaceState(null, '', location.pathname); } catch (_) {} render(); scrollTo(0, 0); }
     else if (d.ctab) { ctab = d.ctab; if (ctab === 'messages' && unseen(cur)) { await API.markSeen(cur.project.id); cur.comments.forEach(c => c.seen = true); } render(); scrollTo(0, 0); }
-    else if ('newp' in d) { const p = await API.insert('projects', { title: S.L === 'es' ? 'Nuevo proyecto' : 'New project', status: 'planning' }); B.unshift(blank(p)); ctab = 'project'; openProject(p.id); }
+    else if ('newp' in d) { creating = true; render(); $('#np-title')?.focus(); }
+    else if ('cancelnew' in d) { creating = false; render(); }
+    else if (d.pf) { pfilter = d.pf; render(); }
     else if ('sample' in d) { b.disabled = true; const id = await makeSample(); ctab = 'dash'; openProject(id); }
     else if (d.add) {
       const tb = d.add, row = await API.insert(tb, { project_id: cur.project.id, sort: cur[tb].length, ...DEF[tb]() });
@@ -288,6 +328,15 @@ app.addEventListener('click', async e => {
     else if (d.rc) { const f = $('#rcfile'); f.dataset.id = d.rc; f.value = ''; f.click(); }
     else if (d.rcv) { const w = window.open('', '_blank'); const u = await API.receiptUrl(d.rcv); if (w) w.location = u; else location.href = u; }
     else if ('print' in d) S.printEstimate(cur, settings);
+    else if (d.doc === 'estimate') { await S.docs.download('estimate', S.docs.snapshot(cur, settings, docLang || S.L)); }
+    else if (d.mkdoc) {
+      const lang = docLang || S.L;
+      const contract = cur.documents.filter(x => x.kind === 'contract' && x.status !== 'void').sort((x, y) => String(y.created_at).localeCompare(String(x.created_at)))[0];
+      const snap = d.mkdoc === 'contract' ? S.docs.snapshot(cur, settings, lang) : S.docs.completionSnapshot(cur, settings, lang, contract);
+      const row = await API.insert('documents', { project_id: cur.project.id, kind: d.mkdoc, lang, snapshot: snap, total: snap.totals.tot, status: 'draft' });
+      cur.documents.push(row); render(); await S.docs.download(d.mkdoc, snap); S.toast(t('docMade'));
+    }
+    else if (d.dl) { const x = cur.documents.find(y => y.id === d.dl); await S.docs.download(x.kind, x.snapshot); }
     else if ('copy' in d) { try { await navigator.clipboard.writeText($('#clink').textContent); S.toast(t('copied')); } catch (_) { getSelection().selectAllChildren($('#clink')); } }
     else if ('dup' in d) { b.disabled = true; const id = await duplicate(cur); S.toast(t('dupOk')); ctab = 'project'; openProject(id); }
     else if ('delp' in d) {
@@ -309,7 +358,7 @@ $('#rcfile').addEventListener('change', async e => {
 function blank(p) { const b = { project: p }; API.CHILD.forEach(t => b[t] = []); return b; }
 async function copyRows(tb, from, pid, map) { const rows = from.map(r => { const x = { ...map(r), project_id: pid }; delete x.id; delete x.created_at; return x; }); return API.insertMany(tb, rows); }
 async function duplicate(src) {
-  const s = src.project, p = await API.insert('projects', { title: `${s.title} ${t('copySuffix')}`, status: 'planning', tax_rate: s.tax_rate });
+  const s = src.project, p = await API.insert('projects', { title: `${s.title} ${t('copySuffix')}`, status: 'estimate_sent', tax_rate: s.tax_rate });
   const b = blank(p);
   b.items = await copyRows('items', src.items, p.id, r => r);
   b.materials = await copyRows('materials', src.materials, p.id, r => ({ ...r, purchased: false, purchased_on: null }));

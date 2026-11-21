@@ -11,7 +11,7 @@ function message(txt, retry) { return shell(`<div class="center"><div class="box
 
 function page() {
   const p = b.project, c = S.calc(b), C = 2 * Math.PI * 80, pend = b.change_orders.filter(x => x.status === 'pending').length;
-  const secs = { overview, estimate, pays, changes, materials, steps, updates, messages };
+  const secs = { overview, estimate, pays, changes, materials, steps, updates, messages, ...(b.documents && b.documents.length ? { docs } : {}) };
   return shell(`<section class="hero"><div class="wrap"><div><div class="who">${esc(p.client_name)}</div><h1>${esc(p.title)}</h1>
   <div class="meta"><span>${esc(p.address)}</span>${p.start_date ? `<span>${t('start')}: ${fdate(p.start_date)}</span>` : ''}${p.end_date ? `<span>${t('end')}: ${fdate(p.end_date)}</span>` : ''}</div><span class="chip">${t('st_' + p.status)}</span></div>
   <div class="ring" role="img" aria-label="${c.pct}% ${t('done')}"><svg viewBox="0 0 190 190"><defs><linearGradient id="rg"><stop offset="0" stop-color="#c9682e"/><stop offset="1" stop-color="#f3a26a"/></linearGradient></defs><circle cx="95" cy="95" r="80" fill="none" stroke="#2a2a2e" stroke-width="14"/><circle cx="95" cy="95" r="80" fill="none" stroke="url(#rg)" stroke-width="14" stroke-linecap="round" stroke-dasharray="${C}" stroke-dashoffset="${C * (1 - c.pct / 100)}"/></svg><div><b>${c.pct}%</b><small>${t('done')}</small></div></div></div></section>
@@ -30,7 +30,7 @@ function estimate(c) {
   const grp = (k, lab, st) => { const rows = b.items.filter(i => (i.kind === 'lab') === (k === 'lab'));
     return `<h3 style="font-size:20px;margin:18px 0 6px">${lab}</h3><div class="scroll"><table class="stack"><thead><tr><th>${t('desc')}</th><th class="n">${t('qty')}</th><th class="n">${t('price')}</th><th class="n">${t('amount')}</th></tr></thead><tbody>${rows.map(i => `<tr><td>${esc(i.description)}</td><td class="n">${esc(i.qty)}</td><td class="n">${money(i.price)}</td><td class="n">${money(c.lt(i))}</td></tr>`).join('') || `<tr><td>${t('none')}</td></tr>`}</tbody></table></div>`; };
   return `<div class="kpis"><div class="kpi"><small>${t('materials')}</small><b>${money(c.subM)}</b></div><div class="kpi"><small>${t('labor')}</small><b>${money(c.subL)}</b></div><div class="kpi"><small>${t('total')}</small><b>${money(c.tot)}</b></div></div>
-  <div class="card"><div class="secthead" style="margin:0"><h2 style="margin-inline-end:auto">${t('estimate')}</h2><button class="btn2" data-print>${t('printEst')}</button></div><p class="sub">${t('estSub')}</p>${grp('mat', t('materials'))}${grp('lab', t('labor'))}
+  <div class="card"><div class="secthead" style="margin:0"><h2 style="margin-inline-end:auto">${t('estimate')}</h2><button class="btn2" data-doc="estimate">${t('dlEstimate')}</button></div><p class="sub">${t('estSub')}</p>${grp('mat', t('materials'))}${grp('lab', t('labor'))}
   ${c.coOk.length ? `<h3 style="font-size:20px;margin:18px 0 6px">${t('changes')}</h3><table><tbody>${c.coOk.map(x => `<tr><td>${esc(x.title)} (${x.kind === 'lab' ? t('labor') : t('materials')})</td><td class="n">${money(x.amount)}</td></tr>`).join('')}</tbody></table>` : ''}
   <table style="margin-top:14px"><tfoot><tr><td>${t('materials')}</td><td class="n">${money(c.subM)}</td></tr><tr><td>${t('labor')}</td><td class="n">${money(c.subL)}</td></tr><tr><td>${t('taxMat')} (${esc(b.project.tax_rate)}%)</td><td class="n">${money(c.tax)}</td></tr><tr class="tot"><td>${t('total')}</td><td class="n">${money(c.tot)}</td></tr></tfoot></table></div>`;
 }
@@ -59,6 +59,7 @@ function steps() {
   return `<div class="cols"><div class="card"><h2>${t('taken')}</h2><p class="sub">${d.length}</p><ol class="tl">${d.map(li).join('') || `<p class="sub">${t('none')}</p>`}</ol></div>
   <div class="card"><h2>${t('next')}</h2><p class="sub">${n.length}</p><ol class="tl todo">${n.map((s, i) => li(s, i + 1)).join('') || `<p class="sub">${t('none')}</p>`}</ol></div></div>`;
 }
+function docs() { return `<div class="card"><h2>${t('docs')}</h2><p class="sub">${t('docsClient')}</p>${b.documents.map(x => `<div class="co"><div class="top2"><b>${t('doc_' + x.kind)}</b><b class="amt">${money(x.total)}</b></div><small class="sub">${fdate(x.created_at)} · ${t('ds_' + x.status)}${x.signed_by ? ' · ' + esc(x.signed_by) : ''}</small><div class="acts"><button class="btn2" data-dl="${x.id}">${t('download')}</button></div></div>`).join('')}</div>`; }
 function updates() { return `<div class="card"><h2>${t('updates')}</h2><p class="sub">${t('updSub')}</p>${b.updates.map(u => `<div class="upd" style="margin-bottom:22px"><small>${fdate(u.created_at)}</small>${u.body ? `<p>${esc(u.body)}</p>` : ''}${S.photos(u.photos)}</div>`).join('') || `<p class="sub">${t('none')}</p>`}</div>`; }
 function messages() {
   const who = contact.name || 'Sonec';
@@ -78,7 +79,7 @@ async function load() {
   try {
     const d = await API.clientProject(tok);
     if (!d) { state = 'missing'; return render(); }
-    contact = d.contact || {}; b = { project: d.project, items: d.items, materials: d.materials, steps: d.steps, updates: d.updates, payments: d.payments, milestones: d.milestones, change_orders: d.change_orders, comments: d.comments };
+    contact = d.contact || {}; b = { project: d.project, items: d.items, materials: d.materials, steps: d.steps, updates: d.updates, payments: d.payments, milestones: d.milestones, change_orders: d.change_orders, comments: d.comments, documents: d.documents || [] };
     state = 'ok';
   } catch (e) { console.error(e); if (state !== 'ok') state = 'error'; }
   render();
@@ -91,6 +92,8 @@ app.addEventListener('click', async e => {
   else if (d.mf) { mf = d.mf; render(); }
   else if ('reload' in d) { state = b ? 'ok' : 'loading'; render(); load(); }
   else if ('print' in d) S.printEstimate(b, contact);
+  else if (d.doc === 'estimate') { try { await S.docs.download('estimate', S.docs.snapshot(b, contact, S.L)); } catch (er) { console.error(er); S.toast(t('error')); } }
+  else if (d.dl) { const x = b.documents.find(y => y.id === d.dl); try { await S.docs.download(x.kind, x.snapshot); } catch (er) { console.error(er); S.toast(t('error')); } }
   else if (d.photo) S.lightbox(d.photo);
   else if (d.decide) {
     const inp = document.querySelector(`[data-namefor="${d.decide}"]`), who = inp.value.trim();
