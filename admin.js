@@ -12,6 +12,8 @@ const chk = (tb, r, f, label) => `<input type="checkbox" class="chk" data-t="${t
 const del = (tb, id) => `<button class="ico x" data-del="${tb}:${id}" aria-label="${t('delete')}" title="${t('delete')}">✕</button>`;
 const budOpts = () => [['', t('noCat')], ...cur.budget.map(b => [b.id, b.category || '·'])];
 const catName = id => cur.budget.find(b => b.id === id)?.category || t('noCat');
+const pct = () => { const v = +settings.share_pct; return isFinite(v) && settings.share_pct !== null && settings.share_pct !== undefined && settings.share_pct !== '' ? v : 10; };
+const shareOf = c => { const s = c.sub * pct() / 100, r = c.tot > 0 ? Math.min(1, Math.max(0, c.paid / c.tot)) : 0; return { s, earned: s * r, pending: s - s * r, after: (c.profit || 0) - s }; };
 const kinds = () => [['mat', t('materials')], ['lab', t('labor')]];
 const kpi = (l, v, cls = '', e = '') => `<div class="kpi ${cls}"><small>${l}</small><b>${money(v)}</b>${e ? `<em>${e}</em>` : ''}</div>`;
 const showInstall = () => { try { if (localStorage.getItem('sonec-noinstall')) return false; } catch (_) {} return /iPhone|iPad|iPod/.test(navigator.userAgent) && !(navigator.standalone || matchMedia('(display-mode: standalone)').matches); };
@@ -41,15 +43,16 @@ function home() {
   ${creating ? `<div class="card"><h2>${t('newProjectT')}</h2><form class="form" id="newpf" style="margin-top:12px"><label class="wide">${t('ptitle')} *<input id="np-title" required maxlength="200" placeholder="${t('ptitleEx')}"></label><label>${t('clientName')}<input id="np-client" maxlength="200"></label><label>${t('status')}<select id="np-status">${STATUSES.map(s => `<option value="${s}">${t('st_' + s)}</option>`).join('')}</select></label><div class="wide" style="display:flex;gap:10px;flex-wrap:wrap;margin-bottom:12px"><button class="primary" type="submit">${t('create')}</button><button class="btn2" type="button" data-cancelnew>${t('cancel')}</button></div></form></div>` : ''}
   ${B.length ? `<div class="filters" role="group" aria-label="${t('status')}">${['all', ...STATUSES].map(s => `<button data-pf="${s}" class="${pfilter === s ? 'on' : ''}" aria-pressed="${pfilter === s}">${s === 'all' ? t('all') : t('st_' + s)} <span class="cnt">${s === 'all' ? B.length : count(s)}</span></button>`).join('')}</div>` : ''}
   ${showInstall() ? `<div class="card" style="display:flex;gap:12px;align-items:center;flex-wrap:wrap"><img src="icon-180.png" alt="" width="48" height="48" style="border-radius:11px"><div style="flex:1 1 220px"><b>${t('installT')}</b><p class="sub" style="margin:2px 0 0">${t('installS')}</p></div><button class="btn2" data-hideinstall>${t('hide')}</button></div>` : ''}
-  ${B.length ? `<div class="kpis">${kpi(t('contracts'), sum('tot'))}${kpi(t('collected'), sum('paid'))}${kpi(t('receivable'), sum('bal'))}${kpi(t('spent'), sum('spent'))}${kpi(t('profit'), sum('profit'), sum('profit') < 0 ? 'neg' : 'pos', t('profitSub'))}</div>` : ''}
+  ${B.length ? `<div class="kpis">${kpi(t('contracts'), sum('tot'))}${kpi(t('collected'), sum('paid'))}${kpi(t('receivable'), sum('bal'))}${kpi(t('spent'), sum('spent'))}${kpi(t('profit'), sum('profit'), sum('profit') < 0 ? 'neg' : 'pos', t('profitSub'))}</div>
+  <div class="kpis">${(() => { const sh = cs.map(shareOf), tot = k => sh.reduce((x, y) => x + y[k], 0); return kpi(`${t('share')} ${pct()}%`, tot('s'), '', t('shareOf')) + kpi(t('shareEarned'), tot('earned'), 'pos', t('shareEarnedSub')) + kpi(t('sharePending'), tot('pending')) + kpi(t('profitAfter'), tot('after'), tot('after') < 0 ? 'neg' : ''); })()}</div>` : ''}
   ${leadsCard()}
   <div class="plist">${shown.length ? '' : (B.length ? `<p class="sub">${t('noneInStatus')}</p>` : '')}${shown.map((b, i) => { const c = cs[i], u = unseen(b); return `<button class="pcard" data-open="${b.project.id}">${u ? `<span class="badge" title="${t('unread')}">${u}</span>` : ''}
     <span class="who2">${esc(b.project.client_name || '·')}</span><h3>${esc(b.project.title || t('project'))}</h3><span class="pill st-${stOf(b.project)}">${t('st_' + stOf(b.project))}</span>
     <div class="bar"><i style="width:${c.pct}%"></i></div><small class="sub">${c.pct}% ${t('done')}</small>
-    <dl><dt>${t('contract')}</dt><dd>${money(c.tot)}</dd><dt>${t('collected')}</dt><dd>${money(c.paid)}</dd><dt>${t('spent')}</dt><dd>${money(c.spent)} ${t('of')} ${money(c.bud)}</dd><dt>${t('profit')}</dt><dd style="color:${c.profit < 0 ? '#d0503a' : 'var(--ok)'}">${money(c.profit)}</dd></dl></button>`; }).join('')}</div>
+    <dl><dt>${t('contract')}</dt><dd>${money(c.tot)}</dd><dt>${t('collected')}</dt><dd>${money(c.paid)}</dd><dt>${t('spent')}</dt><dd>${money(c.spent)} ${t('of')} ${money(c.bud)}</dd><dt>${t('profit')}</dt><dd style="color:${c.profit < 0 ? '#b23a26' : 'var(--ok)'}">${money(c.profit)}</dd><dt>${t('share')} ${pct()}%</dt><dd><b>${money(shareOf(c).s)}</b></dd><dt>${t('shareEarned')}</dt><dd>${money(shareOf(c).earned)}</dd></dl></button>`; }).join('')}</div>
   ${B.length ? '' : `<div class="card" style="text-align:center"><p class="sub">${t('none')}</p><button class="btn2" data-sample>${t('sampleProject')}</button></div>`}
   <div class="cols" style="margin-top:18px"><div class="card week"><h2>${t('thisWeek')}</h2>${up.length ? `<ul>${up.map(s => `<li><time style="${s.late ? 'color:#d0503a' : ''}">${fdate(s.due_date)}</time><div><b>${esc(s.title)}</b><small>${esc(s.pt)}</small></div></li>`).join('')}</ul>` : `<p class="sub">${t('noUpcoming')}</p>`}</div>
-  <div class="card ed"><h2>${t('settings')}</h2><div class="grid2" style="margin-top:12px"><label>${t('company')}${fld('settings', settings, 'company')}</label><label>${t('cname')}${fld('settings', settings, 'contact_name')}</label><label>${t('phone')}${fld('settings', settings, 'phone', 'tel')}</label><label>${t('email')}${fld('settings', settings, 'email', 'email')}</label></div></div></div>
+  <div class="card ed"><h2>${t('settings')}</h2><div class="grid2" style="margin-top:12px"><label>${t('company')}${fld('settings', settings, 'company')}</label><label>${t('cname')}${fld('settings', settings, 'contact_name')}</label><label>${t('phone')}${fld('settings', settings, 'phone', 'tel')}</label><label>${t('email')}${fld('settings', settings, 'email', 'email')}</label><label>${t('sharePct')}${fld('settings', { ...settings, share_pct: pct() }, 'share_pct', 'number')}</label></div><p class="hint">${t('shareHint')}</p></div></div>
   ${B.length ? `<p style="text-align:center"><button class="btn2" data-sample>${t('sampleProject')}</button></p>` : ''}
   </div></main>`;
 }
@@ -92,6 +95,7 @@ function cDash() {
   const c = S.calc(cur);
   const banner = stOf(cur.project) === 'estimate_accepted' && !cur.documents.some(x => x.kind === 'contract' && x.status !== 'void') ? `<div class="card" style="border-color:var(--cu);display:flex;gap:12px;align-items:center;flex-wrap:wrap"><b style="flex:1 1 260px">${t('contractBanner')}</b><button class="primary" data-ctab="docs">${t('goDocs')}</button></div>` : '';
   return banner + `<div class="kpis">${kpi(t('contract'), c.tot)}${kpi(t('collected'), c.paid)}${kpi(t('receivable'), c.bal)}${kpi(t('budget'), c.bud)}${kpi(t('spent'), c.spent, '', (c.bud ? Math.round(c.spent / c.bud * 100) : 0) + '% ' + t('of') + ' ' + t('budget').toLowerCase())}${kpi(t('left'), c.left, c.left < 0 ? 'neg' : '')}${kpi(t('profit'), c.profit, c.profit < 0 ? 'neg' : 'pos', t('profitSub'))}</div>
+  <div class="kpis">${(() => { const sh = shareOf(c); return kpi(`${t('share')} ${pct()}%`, sh.s, '', t('shareOf')) + kpi(t('shareEarned'), sh.earned, 'pos', t('shareEarnedSub')) + kpi(t('sharePending'), sh.pending) + kpi(t('profitAfter'), sh.after, sh.after < 0 ? 'neg' : ''); })()}</div>
   <div class="cols">${buyForm()}${payForm()}</div>
   <div class="cols"><div class="card"><h2>${t('byCat')}</h2>${catBars(c)}</div><div class="card"><h2>${t('recent')}</h2>${expSorted().slice(0, 6).map(e => `<div class="mat"><div><b>${esc(e.description)}</b><small>${fdate(e.spent_on)} · ${esc(e.vendor)} · ${esc(catName(e.budget_id))}</small></div><span class="n">${money(e.amount)}</span></div>`).join('') || `<p class="sub">${t('none')}</p>`}</div></div>`;
 }
@@ -227,6 +231,7 @@ app.addEventListener('change', async e => {
   if (n.type === 'number') v = v === '' ? 0 : +v;
   if (n.type === 'date' && !v) v = null;
   if (d.f === 'budget_id' && !v) v = null;
+  if (d.f === 'share_pct') { v = Math.min(100, Math.max(0, +v || 0)); n.value = v; }
   if (d.t === 'projects' && d.f === 'title' && !String(v).trim()) { n.value = rowOf('projects', d.id).title || ''; return n.focus(); }
   const okSaved = await save(d.t, d.id, d.f, v);
   if (okSaved && (n.type !== 'text' || /category|title/.test(d.f) && ctab !== 'progress') && n.tagName !== 'TEXTAREA') render();
