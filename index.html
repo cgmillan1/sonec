@@ -17,7 +17,7 @@
 <link rel="apple-touch-icon" href="icon-180.png">
 <link rel="preload" as="image" href="img/13-terminado-noche.jpg" imagesrcset="img/13-terminado-noche-sm.jpg 800w, img/13-terminado-noche.jpg 1600w" imagesizes="100vw">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Barlow:wght@400;500;600;700&family=Barlow+Semi+Condensed:wght@600;700&family=Montserrat:wght@700&display=swap">
-<link rel="stylesheet" href="site.css?v=8">
+<link rel="stylesheet" href="site.css?v=9">
 <script type="application/ld+json">
 {
   "@context": "https://schema.org",
@@ -68,6 +68,7 @@
 <section class="hero">
   <img src="img/13-terminado-noche.jpg" srcset="img/13-terminado-noche-sm.jpg 800w, img/13-terminado-noche.jpg 1600w" sizes="100vw" alt="" data-i18n-alt="heroAlt" width="1600" height="1200" fetchpriority="high">
   <div class="wrap">
+    <div class="heromark" aria-hidden="true"><svg viewBox="-80 -80 160 160"><defs><linearGradient id="hcu" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#f3a26a"/><stop offset=".45" stop-color="#d06a2f"/><stop offset="1" stop-color="#8e3f17"/></linearGradient><linearGradient id="hag" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#fff"/><stop offset=".5" stop-color="#b9bec5"/><stop offset=".55" stop-color="#8d939b"/><stop offset="1" stop-color="#e3e6ea"/></linearGradient></defs><path class="hx" d="M-60.6,30 V-35 L0,-70 L60.6,-35 V35 L0,70" fill="none" stroke="url(#hag)" stroke-width="12"/><path class="hs" d="M33,-30 H-18 L-30,-18 V-8 L-18,4 H18 L30,16 V26 L18,38 H-33" fill="none" stroke="url(#hcu)" stroke-width="15"/><path class="ht" d="M-62,70 L-42,42 L-22,70 Z" fill="url(#hag)"/></svg><span>GRUPO SONEC</span></div>
     <h1 data-i18n="heroH">Decks, basements, roofs and remodels in Utah</h1>
     <p class="lead" data-i18n="heroP">From the first footing to the last light. Licensed and insured, serving Utah County and Salt Lake County, in English and Spanish.</p>
     <div class="ctas">
@@ -84,9 +85,9 @@
 
 <section class="band" id="services" aria-labelledby="sh">
   <div class="wrap">
-    <h2 id="sh" data-i18n="servH">What we build</h2>
-    <p class="sub" data-i18n="servP">One crew from start to finish, for projects big and small.</p>
-    <div class="svc">
+    <h2 id="sh" data-i18n="servH" class="rv">What we build</h2>
+    <p class="sub rv" data-i18n="servP">One crew from start to finish, for projects big and small.</p>
+    <div class="svc rvkids">
       <article><svg viewBox="0 0 48 48" aria-hidden="true"><path d="M6 42h36M10 42V22l14-12 14 12v20M18 42V30h12v12"/></svg><h3 data-i18n="s1h">Basement finishing</h3><p data-i18n="s1p">Framing, drywall and finishes that turn an empty basement into rooms your family will use.</p></article>
       <article><svg viewBox="0 0 48 48" aria-hidden="true"><path d="M4 26 24 8l20 18M10 21v4M38 21v4M14 16l10-8 10 8"/><path d="M8 32h32M8 38h32"/></svg><h3 data-i18n="s2h">Roofing</h3><p data-i18n="s2p">Roof repairs and replacements, done right and cleaned up when we leave.</p></article>
       <article><svg viewBox="0 0 48 48" aria-hidden="true"><path d="M4 30h40M4 34h40M8 34v8M40 34v8M24 34v8M6 30V12h36v18M6 12l6-4h24l6 4"/></svg><h3 data-i18n="s3h">Decks and pergolas</h3><p data-i18n="s3p">Composite and wood decks, stairs, railings and covered pergolas built for Utah weather.</p></article>
@@ -98,36 +99,32 @@
 </section>
 
 <section class="band dark" id="work" aria-labelledby="wh">
-  <div class="wrap workhead">
-    <div><h2 id="wh" data-i18n="workH">One project, start to finish</h2>
-    <p class="sub" data-i18n="workP">A composite deck, a covered pergola and an outdoor kitchen with a built-in grill, in a backyard in Utah. Swipe through how we built it.</p></div>
-    <div class="stripnav"><button type="button" data-strip="-1" aria-label="Previous photos" data-i18n-aria="prev"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M15 5l-7 7 7 7"/></svg></button><button type="button" data-strip="1" aria-label="Next photos" data-i18n-aria="next"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 5l7 7-7 7"/></svg></button></div>
+  <div class="wrap">
+    <h2 id="wh" data-i18n="workH" class="rv">One project, start to finish</h2>
+    <p class="sub rv" data-i18n="workP2">A composite deck, a covered pergola and an outdoor kitchen with a built-in grill, in a backyard in Utah. Watch it come together.</p>
+    <div class="tl rv" id="tl">
+      <div class="tlframe"><img src="img/02-base-sm.jpg" srcset="img/02-base-sm.jpg 800w, img/02-base.jpg 1600w" sizes="(max-width:1120px) 100vw, 1060px" alt="" class="on" width="800" height="432"><img src="img/01-estructura-sm.jpg" srcset="img/01-estructura-sm.jpg 800w, img/01-estructura.jpg 1600w" sizes="(max-width:1120px) 100vw, 1060px" alt="" loading="lazy" class="" width="800" height="450"><img src="img/03-deck-sm.jpg" srcset="img/03-deck-sm.jpg 800w, img/03-deck.jpg 1600w" sizes="(max-width:1120px) 100vw, 1060px" alt="" loading="lazy" class="" width="800" height="600"><img src="img/04-paredes-sm.jpg" srcset="img/04-paredes-sm.jpg 800w, img/04-paredes.jpg 1600w" sizes="(max-width:1120px) 100vw, 1060px" alt="" loading="lazy" class="" width="800" height="450"><img src="img/05-deck-escalones-sm.jpg" srcset="img/05-deck-escalones-sm.jpg 800w, img/05-deck-escalones.jpg 1600w" sizes="(max-width:1120px) 100vw, 1060px" alt="" loading="lazy" class="" width="800" height="600"><img src="img/06-postes-sm.jpg" srcset="img/06-postes-sm.jpg 800w, img/06-postes.jpg 1600w" sizes="(max-width:1120px) 100vw, 1060px" alt="" loading="lazy" class="" width="600" height="800"><img src="img/07-pergola-sm.jpg" srcset="img/07-pergola-sm.jpg 800w, img/07-pergola.jpg 1600w" sizes="(max-width:1120px) 100vw, 1060px" alt="" loading="lazy" class="" width="800" height="600"><img src="img/08-cocina-marco-sm.jpg" srcset="img/08-cocina-marco-sm.jpg 800w, img/08-cocina-marco.jpg 1600w" sizes="(max-width:1120px) 100vw, 1060px" alt="" loading="lazy" class="" width="800" height="450"><img src="img/12-pergola-tarde-sm.jpg" srcset="img/12-pergola-tarde-sm.jpg 800w, img/12-pergola-tarde.jpg 1600w" sizes="(max-width:1120px) 100vw, 1060px" alt="" loading="lazy" class="" width="800" height="600"><img src="img/09-panel-sm.jpg" srcset="img/09-panel-sm.jpg 800w, img/09-panel.jpg 1600w" sizes="(max-width:1120px) 100vw, 1060px" alt="" loading="lazy" class="" width="800" height="600"><img src="img/10-cocina-piedra-sm.jpg" srcset="img/10-cocina-piedra-sm.jpg 800w, img/10-cocina-piedra.jpg 1600w" sizes="(max-width:1120px) 100vw, 1060px" alt="" loading="lazy" class="" width="800" height="600"><img src="img/11-cubierta-sm.jpg" srcset="img/11-cubierta-sm.jpg 800w, img/11-cubierta.jpg 1600w" sizes="(max-width:1120px) 100vw, 1060px" alt="" loading="lazy" class="" width="800" height="600"><img src="img/13-terminado-noche-sm.jpg" srcset="img/13-terminado-noche-sm.jpg 800w, img/13-terminado-noche.jpg 1600w" sizes="(max-width:1120px) 100vw, 1060px" alt="" loading="lazy" class="" width="800" height="600">
+        <div class="tlcap" aria-live="polite"><b id="tlnum">1 / 13</b><span id="tltxt">Footings and base</span></div>
+        <div class="tlbars" aria-hidden="true"><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i></div>
+      </div>
+      <div class="tlctl">
+        <button type="button" class="tlplay" id="tlplay" aria-label="Play" data-i18n-aria="play"><svg class="pl" viewBox="0 0 24 24" aria-hidden="true"><path d="M8 5v14l11-7z"/></svg><svg class="pa" viewBox="0 0 24 24" aria-hidden="true"><path d="M7 5h4v14H7zM13 5h4v14h-4z"/></svg></button>
+        <input type="range" id="tlrange" min="1" max="13" value="1" step="1" aria-label="Build step" data-i18n-aria="stepLabel">
+        <span class="tlend" data-i18n="tlEnd">Finished</span>
+      </div>
+    </div>
   </div>
   <div class="strip" role="region" aria-labelledby="wh" tabindex="0">
-    <ol>
-      <li><img src="img/02-base-sm.jpg" alt="" loading="lazy" width="800" height="432"><b>1</b><span data-i18n="w1">Footings and base</span></li>
-      <li><img src="img/01-estructura-sm.jpg" alt="" loading="lazy" width="800" height="450"><b>2</b><span data-i18n="w2">Deck framing</span></li>
-      <li><img src="img/03-deck-sm.jpg" alt="" loading="lazy" width="800" height="600"><b>3</b><span data-i18n="w3">Composite decking</span></li>
-      <li><img src="img/04-paredes-sm.jpg" alt="" loading="lazy" width="800" height="450"><b>4</b><span data-i18n="w4">Privacy wall framing</span></li>
-      <li><img src="img/05-deck-escalones-sm.jpg" alt="" loading="lazy" width="800" height="600"><b>5</b><span data-i18n="w5">Stairs and cement board</span></li>
-      <li><img src="img/06-postes-sm.jpg" alt="" loading="lazy" width="600" height="800"><b>6</b><span data-i18n="w6">Posts and beams</span></li>
-      <li><img src="img/07-pergola-sm.jpg" alt="" loading="lazy" width="800" height="600"><b>7</b><span data-i18n="w7">Pergola structure</span></li>
-      <li><img src="img/08-cocina-marco-sm.jpg" alt="" loading="lazy" width="800" height="450"><b>8</b><span data-i18n="w8">Outdoor kitchen frame</span></li>
-      <li><img src="img/12-pergola-tarde-sm.jpg" alt="" loading="lazy" width="800" height="600"><b>9</b><span data-i18n="w9">Roof panels on</span></li>
-      <li><img src="img/09-panel-sm.jpg" alt="" loading="lazy" width="800" height="600"><b>10</b><span data-i18n="w10">Wall panels</span></li>
-      <li><img src="img/10-cocina-piedra-sm.jpg" alt="" loading="lazy" width="800" height="600"><b>11</b><span data-i18n="w11">Stone veneer</span></li>
-      <li><img src="img/11-cubierta-sm.jpg" alt="" loading="lazy" width="800" height="600"><b>12</b><span data-i18n="w12">Countertop and sink</span></li>
-      <li><img src="img/13-terminado-noche-sm.jpg" alt="" loading="lazy" width="800" height="600"><b>13</b><span data-i18n="w13">First night under the lights</span></li>
-    </ol>
+    <ol><li><button type="button" data-step="0" aria-label="1" aria-current="step"><img src="img/02-base-sm.jpg" alt="" loading="lazy" width="800" height="432"><b>1</b><span data-i18n="w1">Footings and base</span></button></li><li><button type="button" data-step="1" aria-label="2"><img src="img/01-estructura-sm.jpg" alt="" loading="lazy" width="800" height="450"><b>2</b><span data-i18n="w2">Deck framing</span></button></li><li><button type="button" data-step="2" aria-label="3"><img src="img/03-deck-sm.jpg" alt="" loading="lazy" width="800" height="600"><b>3</b><span data-i18n="w3">Composite decking</span></button></li><li><button type="button" data-step="3" aria-label="4"><img src="img/04-paredes-sm.jpg" alt="" loading="lazy" width="800" height="450"><b>4</b><span data-i18n="w4">Privacy wall framing</span></button></li><li><button type="button" data-step="4" aria-label="5"><img src="img/05-deck-escalones-sm.jpg" alt="" loading="lazy" width="800" height="600"><b>5</b><span data-i18n="w5">Stairs and cement board</span></button></li><li><button type="button" data-step="5" aria-label="6"><img src="img/06-postes-sm.jpg" alt="" loading="lazy" width="600" height="800"><b>6</b><span data-i18n="w6">Posts and beams</span></button></li><li><button type="button" data-step="6" aria-label="7"><img src="img/07-pergola-sm.jpg" alt="" loading="lazy" width="800" height="600"><b>7</b><span data-i18n="w7">Pergola structure</span></button></li><li><button type="button" data-step="7" aria-label="8"><img src="img/08-cocina-marco-sm.jpg" alt="" loading="lazy" width="800" height="450"><b>8</b><span data-i18n="w8">Outdoor kitchen frame</span></button></li><li><button type="button" data-step="8" aria-label="9"><img src="img/12-pergola-tarde-sm.jpg" alt="" loading="lazy" width="800" height="600"><b>9</b><span data-i18n="w9">Roof panels on</span></button></li><li><button type="button" data-step="9" aria-label="10"><img src="img/09-panel-sm.jpg" alt="" loading="lazy" width="800" height="600"><b>10</b><span data-i18n="w10">Wall panels</span></button></li><li><button type="button" data-step="10" aria-label="11"><img src="img/10-cocina-piedra-sm.jpg" alt="" loading="lazy" width="800" height="600"><b>11</b><span data-i18n="w11">Stone veneer</span></button></li><li><button type="button" data-step="11" aria-label="12"><img src="img/11-cubierta-sm.jpg" alt="" loading="lazy" width="800" height="600"><b>12</b><span data-i18n="w12">Countertop and sink</span></button></li><li><button type="button" data-step="12" aria-label="13"><img src="img/13-terminado-noche-sm.jpg" alt="" loading="lazy" width="800" height="600"><b>13</b><span data-i18n="w13">First night under the lights</span></button></li></ol>
   </div>
 </section>
 
 <section class="band" id="app" aria-labelledby="ah">
   <div class="wrap appgrid">
     <div>
-      <h2 id="ah" data-i18n="appH">Follow your project from your phone</h2>
+      <h2 id="ah" data-i18n="appH" class="rv">Follow your project from your phone</h2>
       <p class="sub" data-i18n="appP">Every client gets a private page for their project. No more wondering what is happening at your house.</p>
-      <ul class="checks">
+      <ul class="checks rvkids">
         <li data-i18n="a1">Progress, steps done and what comes next</li>
         <li data-i18n="a2">Your estimate, split into materials and labor</li>
         <li data-i18n="a3">How much you have paid and how much is left</li>
@@ -135,7 +132,7 @@
         <li data-i18n="a5">Photos of every stage, and messages with the crew</li>
       </ul>
     </div>
-    <div class="phones" aria-hidden="true">
+    <div class="phones rvkids" aria-hidden="true">
       <figure class="phone"><img data-shot="resumen" src="img/app-resumen-en.jpg" alt="" loading="lazy" width="600" height="1299"></figure>
       <figure class="phone"><img data-shot="pagos" src="img/app-pagos-en.jpg" alt="" loading="lazy" width="600" height="1299"></figure>
       <figure class="phone"><img data-shot="cambios" src="img/app-cambios-en.jpg" alt="" loading="lazy" width="600" height="1299"></figure>
@@ -145,8 +142,8 @@
 
 <section class="band soft" aria-labelledby="ph">
   <div class="wrap">
-    <h2 id="ph" data-i18n="procH">How we work</h2>
-    <ol class="steps">
+    <h2 id="ph" data-i18n="procH" class="rv">How we work</h2>
+    <ol class="steps rvkids">
       <li><b>1</b><h3 data-i18n="p1h">Visit and estimate</h3><p data-i18n="p1p">We come to your home, measure and send you a clear estimate.</p></li>
       <li><b>2</b><h3 data-i18n="p2h">Plan and approval</h3><p data-i18n="p2p">You approve the estimate and the payment schedule before we start.</p></li>
       <li><b>3</b><h3 data-i18n="p3h">We build</h3><p data-i18n="p3p">Our crew gets to work and posts updates and photos to your project page.</p></li>
@@ -166,7 +163,7 @@
       </div>
       <p class="area"><b data-i18n="areaH">Where we work</b><br><span data-i18n="areaP">Utah County and Salt Lake County, Utah. Licensed and insured.</span></p>
     </div>
-    <form id="estf" class="card" novalidate>
+    <form id="estf" class="card rv" novalidate>
       <div class="hp" aria-hidden="true"><label>Website <input name="website" tabindex="-1" autocomplete="off"></label></div>
       <label><span data-i18n="fName">Name</span> <i aria-hidden="true">*</i><input name="name" required autocomplete="name" maxlength="120"></label>
       <div class="two">
@@ -205,8 +202,8 @@
 </footer>
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.119.0/dist/umd/supabase.js" integrity="sha384-uteMfOloLDGt042uDz+xHGF3ym63/WQ6rFq7murQRG8Ih7QrXGEGNtWd8688sb4O" crossorigin="anonymous" defer></script>
-<script src="config.js?v=8" defer></script>
-<script src="api.js?v=8" defer></script>
-<script src="site.js?v=8" defer></script>
+<script src="config.js?v=9" defer></script>
+<script src="api.js?v=9" defer></script>
+<script src="site.js?v=9" defer></script>
 </body>
 </html>

@@ -31,11 +31,11 @@
     areaH: 'Dónde trabajamos', areaP: 'Utah County y Salt Lake County, Utah. Con licencia y seguro.',
     fName: 'Nombre', fPhone: 'Teléfono', fEmail: 'Correo', fContact: 'Teléfono o correo, para poder contactarte.', fCity: 'Ciudad', fService: 'Servicio', other: 'Otra cosa', fMsg: 'Cuéntanos del proyecto', fSend: 'Enviar solicitud',
     okH: '¡Gracias!', okP: 'Recibimos tu solicitud y te contactaremos pronto.',
-    contractorLogin: 'Entrada del contratista', prev: 'Fotos anteriores', next: 'Siguientes fotos',
+    contractorLogin: 'Entrada del contratista', prev: 'Fotos anteriores', next: 'Siguientes fotos', workP2: 'Un deck de composite, una pérgola techada y una cocina exterior con asador empotrado, en un patio de Utah. Míralo tomar forma.', play: 'Reproducir', pause: 'Pausa', stepLabel: 'Paso de la obra', tlEnd: 'Terminado',
     errName: 'Escribe tu nombre.', errContact: 'Escribe un teléfono o un correo.', errEmail: 'Revisa el correo.', errSend: 'No se pudo enviar. Llámanos al (385) 266-0675.', errMany: 'Hay muchas solicitudes en este momento. Llámanos al (385) 266-0675.', sending: 'Enviando…',
     title: 'Grupo Sonec · Decks, sótanos, techos y remodelaciones en Utah'
   };
-  const EN_EXTRA = { errName: 'Please type your name.', errContact: 'Please add a phone or an email.', errEmail: 'Please check the email.', errSend: 'We could not send it. Call us at (385) 266-0675.', errMany: 'We are getting many requests right now. Call us at (385) 266-0675.', sending: 'Sending…' };
+  const EN_EXTRA = { pause: 'Pause', errName: 'Please type your name.', errContact: 'Please add a phone or an email.', errEmail: 'Please check the email.', errSend: 'We could not send it. Call us at (385) 266-0675.', errMany: 'We are getting many requests right now. Call us at (385) 266-0675.', sending: 'Sending…' };
 
   const nodes = [...document.querySelectorAll('[data-i18n]')], EN = {};
   nodes.forEach(n => { EN[n.dataset.i18n] = n.textContent; });
@@ -61,7 +61,52 @@
   }));
   apply();
 
-  /* photo strip arrows */
+  /* ---- timelapse of the build ---- */
+  {
+    const tl = document.getElementById('tl'), frames = [...tl.querySelectorAll('.tlframe > img')], bars = [...tl.querySelectorAll('.tlbars i')];
+    const chips = [...document.querySelectorAll('[data-step]')], range = document.getElementById('tlrange'), playBtn = document.getElementById('tlplay');
+    const num = document.getElementById('tlnum'), txt = document.getElementById('tltxt'), strip = document.querySelector('.strip');
+    const reduce = matchMedia('(prefers-reduced-motion: reduce)').matches;
+    let i = 0, timer = null, played = false;
+    const show = (n, fromUser) => {
+      i = Math.max(0, Math.min(frames.length - 1, n));
+      frames.forEach((f, k) => f.classList.toggle('on', k === i));
+      bars.forEach((b, k) => b.classList.toggle('done', k <= i));
+      chips.forEach((c, k) => k === i ? c.setAttribute('aria-current', 'step') : c.removeAttribute('aria-current'));
+      range.value = i + 1; num.textContent = `${i + 1} / ${frames.length}`;
+      txt.textContent = chips[i].querySelector('span').textContent;
+      range.setAttribute('aria-valuetext', `${i + 1} / ${frames.length}: ${txt.textContent}`);
+      if (fromUser) { const c = chips[i]; strip.scrollTo({ left: c.offsetLeft - strip.clientWidth / 2 + c.clientWidth / 2, behavior: reduce ? 'auto' : 'smooth' }); }
+      if (frames[i + 1]) frames[i + 1].loading = 'eager';
+    };
+    const label = () => { playBtn.classList.toggle('playing', !!timer); playBtn.setAttribute('aria-label', t(timer ? 'pause' : 'play')); };
+    const stop = () => { clearInterval(timer); timer = null; label(); };
+    const play = () => {
+      if (i >= frames.length - 1) show(0);
+      stop(); played = true;
+      timer = setInterval(() => { if (i >= frames.length - 1) return stop(); show(i + 1); }, 1500); label();
+    };
+    playBtn.addEventListener('click', () => (timer ? stop() : play()));
+    range.addEventListener('input', () => { stop(); show(range.value - 1, true); });
+    chips.forEach((c, k) => c.addEventListener('click', () => { stop(); show(k, true); tl.scrollIntoView({ block: 'nearest', behavior: reduce ? 'auto' : 'smooth' }); }));
+    tl.addEventListener('keydown', e => { if (e.target === range) return; if (e.key === 'ArrowRight') { stop(); show(i + 1, true); } if (e.key === 'ArrowLeft') { stop(); show(i - 1, true); } });
+    if ('IntersectionObserver' in window) new IntersectionObserver(es => es.forEach(e => {
+      if (e.isIntersecting && !played && !reduce) play();
+      if (!e.isIntersecting && timer) stop();
+    }), { threshold: 0.55 }).observe(tl);
+    show(0); label();
+    document.querySelectorAll('[data-lang]').forEach(b => b.addEventListener('click', () => { show(i); label(); }));
+  }
+
+  /* ---- reveal on scroll (only when motion is welcome) ---- */
+  if (!matchMedia('(prefers-reduced-motion: reduce)').matches && 'IntersectionObserver' in window) {
+    document.documentElement.classList.add('anim');
+    document.querySelectorAll('.rvkids').forEach(g => [...g.children].forEach((c, k) => c.style.setProperty('--d', `${k * 70}ms`)));
+    const io = new IntersectionObserver(es => es.forEach(e => { if (e.isIntersecting) { e.target.classList.add('in'); io.unobserve(e.target); } }), { threshold: 0.15, rootMargin: '0px 0px -40px 0px' });
+    document.querySelectorAll('.rv, .rvkids').forEach(n => io.observe(n));
+  }
+
+  /* photo strip arrows (kept for older pages) */
   const strip = document.querySelector('.strip');
   document.querySelectorAll('[data-strip]').forEach(b => b.addEventListener('click', () => {
     strip.scrollBy({ left: +b.dataset.strip * Math.max(300, strip.clientWidth * 0.8), behavior: matchMedia('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth' });
