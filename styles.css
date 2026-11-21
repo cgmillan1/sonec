@@ -267,3 +267,9 @@ body{padding-left:env(safe-area-inset-left);padding-right:env(safe-area-inset-ri
 .stsel2.st-progress{background:light-dark(#f6dcc7,#3a2214);color:light-dark(#7a3a12,#f0a676)}
 .stsel2.st-done{background:light-dark(#d5eedd,#15301f);color:light-dark(#1f5e38,#7fd6a0)}
 .sr{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
+
+/* share bar at the top of every project */
+.sharebar{display:flex;gap:12px 18px;align-items:center;flex-wrap:wrap;background:light-dark(#fbf1e9,#221812);border:1px solid light-dark(#efcfb6,#4a2c1b);border-radius:14px;padding:14px 16px;margin:0 0 18px}
+.sbtxt{flex:1 1 260px}.sbtxt b{display:block;font-size:17px}.sbtxt small{color:var(--mute);font-size:14px}
+.sbbtn{display:flex;gap:8px;flex-wrap:wrap}.sbbtn .primary,.sbbtn .btn2{min-height:44px;padding:8px 16px;text-decoration:none;display:inline-flex;align-items:center}
+.sbhint{flex-basis:100%;color:var(--mute);font-size:13px}

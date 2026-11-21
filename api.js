@@ -42,6 +42,7 @@
     async upload(bucket, path, blob) { ok(await sb.storage.from(bucket).upload(path, blob, { contentType: blob.type || 'image/jpeg', upsert: false })); return path; },
     async removeFiles(bucket, paths) { if (paths && paths.length) ok(await sb.storage.from(bucket).remove(paths)); },
     async listFolder(bucket, folder) { return (ok(await sb.storage.from(bucket).list(folder, { limit: 1000 })) || []).map(f => folder + '/' + f.name); },
+    docUrl(path) { return sb.storage.from('docs').getPublicUrl(path).data.publicUrl; },
     photoUrl(path) { return sb.storage.from('photos').getPublicUrl(path).data.publicUrl; },
     async receiptUrl(path) { return ok(await sb.storage.from('receipts').createSignedUrl(path, 600)).signedUrl; },
 

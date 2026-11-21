@@ -74,7 +74,8 @@ function project() {
   return topbar() + `<nav class="cbar"><div class="wrap"><button data-home>${t('back')}</button>${Object.keys(tabs).map(k => `<button data-ctab="${k}" class="${ctab === k ? 'on' : ''}">${t(k)}${k === 'messages' && u ? `<span class="badge">${u}</span>` : ''}</button>`).join('')}</div></nav>
   <main class="ed"><div class="wrap"><div class="phead"><label class="sr" for="ptitle-top">${t('ptitle')}</label><input id="ptitle-top" class="titleinp" data-t="projects" data-id="${p.id}" data-f="title" value="${esc(p.title)}" placeholder="${t('ptitleEx')}" maxlength="200">
   <label class="stlab"><span class="sr">${t('status')}</span><select class="stsel2 st-${stOf(p)}" data-t="projects" data-id="${p.id}" data-f="status">${STATUSES.map(s => `<option value="${s}"${stOf(p) === s ? ' selected' : ''}>${t('st_' + s)}</option>`).join('')}</select></label></div>
-  <p class="sub" style="margin:-4px 0 14px">${esc(p.client_name)}${p.client_name && p.address ? ' · ' : ''}${esc(p.address || '')}</p>${tabs[ctab]()}</div></main>`;
+  <p class="sub" style="margin:-4px 0 14px">${esc(p.client_name)}${p.client_name && p.address ? ' · ' : ''}${esc(p.address || '')}</p>
+  ${shareBar(p)}${tabs[ctab]()}</div></main>`;
 }
 function buyForm() {
   return `<div class="card"><h2>${t('logBuy')}</h2><form class="form" id="buyf" style="margin-top:12px">
@@ -155,10 +156,12 @@ function cDocs() {
   ${miss.length ? `<p class="hint" style="color:#b23a26;font-weight:600">${t('missingFor')}: ${miss.join(', ')}</p>` : ''}
   <div class="linkbox" style="margin-top:10px"><label style="margin:0">${t('docLang')} <select id="doclang" style="min-height:44px;margin-inline-start:6px">${[['es', 'Español'], ['en', 'English']].map(([v, l]) => `<option value="${v}"${lang === v ? ' selected' : ''}>${l}</option>`).join('')}</select></label></div>
   <div class="linkbox" style="margin-top:12px"><button class="btn2" data-doc="estimate">${t('dlEstimate')}</button><button class="primary" data-mkdoc="contract">${t('mkContract')}</button><button class="btn2" data-mkdoc="completion">${t('mkCompletion')}</button></div>
-  ${hasContract ? '' : `<p class="hint">${t('noContractYet')}</p>`}<p class="hint">${t('docsHint')}</p></div>
-  <div class="card">${docs.map(x => `<div class="co"><div class="top2"><b>${t('doc_' + x.kind)} · ${(x.lang || 'es').toUpperCase()}</b><b class="amt">${money(x.total)}</b></div>
+  ${hasContract ? '' : `<p class="hint">${t('noContractYet')}</p>`}<p class="hint">${t('docsHint')}</p>
+  <div class="linkbox" style="margin-top:14px;padding-top:14px;border-top:1px solid var(--line)"><label style="margin:0">${t('upKind')} <select id="upkind" style="min-height:44px;margin-inline-start:6px">${['contract', 'estimate', 'completion'].map(k => `<option value="${k}">${t('doc_' + k)}</option>`).join('')}</select></label><button class="btn2" data-updoc>${t('upDoc')}</button></div><p class="hint">${t('upDocHint')}</p></div>
+  <div class="card">${docs.map(x => `<div class="co"><div class="top2"><b>${t('doc_' + x.kind)}${x.snapshot && x.snapshot.items ? ' · ' + (x.lang || 'es').toUpperCase() : ' · ' + t('uploadedDoc')}</b><b class="amt">${money(x.total)}</b></div>
     <small class="sub">${fdate(x.created_at)}</small>
-    <div class="acts">${sel('documents', x, 'status', ['draft', 'sent', 'signed', 'void'].map(s => [s, t('ds_' + s)]), 'stsel')}<button class="btn2" data-dl="${x.id}">${t('download')}</button>${x.status === 'draft' ? del('documents', x.id) : ''}</div>
+    <div class="acts">${sel('documents', x, 'status', ['draft', 'sent', 'signed', 'void'].map(s => [s, t('ds_' + s)]), 'stsel')}${x.file ? `<button class="primary" data-dlsigned="${x.id}">${t('dlSigned')}</button>` : ''}${x.snapshot && x.snapshot.items ? `<button class="btn2" data-dl="${x.id}">${x.file ? t('dlOriginal') : t('download')}</button>` : ''}<button class="btn2" data-upsigned="${x.id}">${t('upSigned')}</button>${x.status === 'draft' || (x.file && !(x.snapshot && x.snapshot.items)) ? del('documents', x.id) : ''}</div>
+    ${x.file ? `<small class="sub" style="color:var(--ok);font-weight:600">✓ ${t('signedFile')}</small>` : ''}
     ${x.status === 'signed' ? `<div class="grid2" style="margin-top:10px"><label>${t('signedBy')}${fld('documents', x, 'signed_by')}</label><label>${t('signedOn')}${fld('documents', x, 'signed_on', 'date')}</label></div>` : ''}</div>`).join('') || `<p class="sub">${t('none')}</p>`}</div>
   <div class="card"><h2>${t('contractData')}</h2><p class="sub">${t('contractDataSub')}</p><div class="grid2" style="margin-top:12px">
   <label>${t('legalName')}${fld('settings', settings, 'legal_name')}</label><label>${t('licenseNo')}${fld('settings', settings, 'license_no')}</label>
@@ -172,8 +175,19 @@ function cMsgs() {
   return `<div class="card"><h2>${t('messages')}</h2><div class="chat" id="chat">${cur.comments.slice().sort((a, b) => String(a.created_at).localeCompare(String(b.created_at))).map(m => `<div class="bub ${m.author === 'contractor' ? 'me' : ''}"><small>${esc(m.name || (m.author === 'client' ? t('client') : me))} · ${fdate(m.created_at)}</small><p>${esc(m.body)}</p></div>`).join('') || `<p class="sub">${t('none')}</p>`}</div>
   <form class="sendrow" id="msgf"><textarea id="rp" rows="2" placeholder="${t('writeMsg')}" aria-label="${t('writeMsg')}"></textarea><button class="primary" type="submit">${t('send')}</button></form></div>`;
 }
+const clientLink = p => new URL('proyecto.html?p=' + p.client_token, location.href).href;
+function shareBar(p) {
+  const link = clientLink(p), digits = (p.client_phone || '').replace(/\D/g, ''), phone = digits.length === 10 ? '1' + digits : digits;
+  const msg = encodeURIComponent(t('shareMsg').replace('{n}', (p.client_name || '').replace(/\s*\(.*\)\s*$/, '').split(' ')[0] || '').replace(/\s+,/, ',') + link);
+  return `<div class="sharebar"><div class="sbtxt"><b>${t('shareT')}</b><small>${t('shareS')}</small></div>
+  <div class="sbbtn"><button class="primary" data-copylink="${esc(link)}">${t('copy')}</button>
+  <a class="btn2" href="https://wa.me/${phone}?text=${msg}" target="_blank" rel="noopener">WhatsApp</a>
+  <a class="btn2" href="sms:${phone ? '+' + phone : ''}?&body=${msg}">${t('sms')}</a>
+  <a class="btn2" href="${esc(link)}" target="_blank" rel="noopener">${t('open')}</a></div>
+  ${phone ? '' : `<small class="sbhint">${t('noPhone')}</small>`}</div>`;
+}
 function cProj() {
-  const p = cur.project, link = new URL('proyecto.html?p=' + p.client_token, location.href).href, wa = (p.client_phone || '').replace(/\D/g, '');
+  const p = cur.project, link = clientLink(p), wa = (p.client_phone || '').replace(/\D/g, '');
   const msg = encodeURIComponent((S.L === 'es' ? 'Hola, aquí puedes ver tu proyecto con Sonec: ' : 'Hi, here you can follow your project with Sonec: ') + link);
   return `<div class="card"><h2>${t('projInfo')}</h2><div class="grid2" style="margin-top:12px">
   <label>${t('ptitle')}${fld('projects', p, 'title')}</label><label>${t('status')}${sel('projects', { ...p, status: stOf(p) }, 'status', STATUSES.map(s => [s, t('st_' + s)]))}</label>
@@ -310,7 +324,7 @@ app.addEventListener('click', async e => {
     else if (d.del) {
       const [tb, id] = d.del.split(':'), row = rowOf(tb, id); await API.remove(tb, id);
       cur[tb] = cur[tb].filter(r => r.id !== id); render();
-      const files = tb === 'updates' ? ['photos', row.photos || []] : tb === 'expenses' && row.receipt ? ['receipts', [row.receipt]] : null;
+      const files = tb === 'updates' ? ['photos', row.photos || []] : tb === 'expenses' && row.receipt ? ['receipts', [row.receipt]] : tb === 'documents' && row.file ? ['docs', [row.file]] : null;
       const tm = files && files[1].length ? setTimeout(() => API.removeFiles(files[0], files[1]).catch(er => console.warn('cleanup', er)), 6000) : null;
       S.toast(t('removed'), async () => { clearTimeout(tm); try { cur[tb].push(await API.insert(tb, row)); render(); } catch (x) { fail(x); } });
     }
@@ -336,24 +350,44 @@ app.addEventListener('click', async e => {
     else if (d.doc === 'estimate') { await S.docs.download('estimate', S.docs.snapshot(cur, settings, docLang || S.L)); }
     else if (d.mkdoc) {
       const lang = docLang || S.L;
-      const contract = cur.documents.filter(x => x.kind === 'contract' && x.status !== 'void').sort((x, y) => String(y.created_at).localeCompare(String(x.created_at)))[0];
+      const contract = cur.documents.filter(x => x.kind === 'contract' && x.status !== 'void' && x.snapshot && x.snapshot.items).sort((x, y) => String(y.created_at).localeCompare(String(x.created_at)))[0];
       const snap = d.mkdoc === 'contract' ? S.docs.snapshot(cur, settings, lang) : S.docs.completionSnapshot(cur, settings, lang, contract);
       const row = await API.insert('documents', { project_id: cur.project.id, kind: d.mkdoc, lang, snapshot: snap, total: snap.totals.tot, status: 'draft' });
       cur.documents.push(row); render(); await S.docs.download(d.mkdoc, snap); S.toast(t('docMade'));
     }
+    else if (d.copylink) { try { await navigator.clipboard.writeText(d.copylink); S.toast(t('copied')); } catch (_) { prompt(t('copy'), d.copylink); } }
+    else if (d.dlsigned) { const x = cur.documents.find(y => y.id === d.dlsigned); window.open(API.docUrl(x.file), '_blank', 'noopener'); }
+    else if (d.upsigned || 'updoc' in d) { const f = $('#docfile'); f.dataset.id = d.upsigned || ''; f.dataset.kind = d.upsigned ? '' : $('#upkind').value; f.value = ''; f.click(); }
     else if (d.dl) { const x = cur.documents.find(y => y.id === d.dl); await S.docs.download(x.kind, x.snapshot); }
     else if ('copy' in d) { try { await navigator.clipboard.writeText($('#clink').textContent); S.toast(t('copied')); } catch (_) { getSelection().selectAllChildren($('#clink')); } }
     else if ('dup' in d) { b.disabled = true; const id = await duplicate(cur); S.toast(t('dupOk')); ctab = 'project'; openProject(id); }
     else if ('delp' in d) {
       if (!/^(ELIMINAR|DELETE)$/i.test($('#delc').value.trim())) return $('#delc').focus();
       const pid = cur.project.id;
-      for (const bk of ['photos', 'receipts']) { try { await API.removeFiles(bk, await API.listFolder(bk, pid)); } catch (er) { console.warn('cleanup', er); } }
+      for (const bk of ['photos', 'receipts', 'docs']) { try { await API.removeFiles(bk, await API.listFolder(bk, pid)); } catch (er) { console.warn('cleanup', er); } }
       await API.remove('projects', pid); B = B.filter(x => x !== cur); cur = null; view = 'home'; try { history.replaceState(null, '', location.pathname); } catch (_) {} render();
     }
   } catch (x) { fail(x); render(); }
   finally { if (guard) { delete b.dataset.busy; b.disabled = false; } }
 });
 
+$('#docfile').addEventListener('change', async e => {
+  const f = e.target.files[0], id = e.target.dataset.id, kind = e.target.dataset.kind; if (!f) return;
+  if (!/pdf$/i.test(f.type) && !/\.pdf$/i.test(f.name) || f.size > 20 * 1024 * 1024) return S.toast(t('pdfOnly'));
+  try {
+    setDot(t('uploading'));
+    const path = await API.upload('docs', `${cur.project.id}/${S.uid()}.pdf`, new Blob([f], { type: 'application/pdf' }));
+    if (id) {
+      const x = cur.documents.find(y => y.id === id), old = x.file;
+      Object.assign(x, await API.update('documents', id, { file: path, status: 'signed', signed_on: x.signed_on || S.today() }));
+      if (old) API.removeFiles('docs', [old]).catch(() => {});
+    } else {
+      const c = S.calc(cur);
+      cur.documents.push(await API.insert('documents', { project_id: cur.project.id, kind, lang: S.L, snapshot: { uploaded: true, name: f.name, created: new Date().toISOString(), totals: { tot: c.tot } }, total: c.tot, status: 'signed', signed_on: S.today(), file: path }));
+    }
+    setDot(t('saved') + ' ✓'); render(); S.toast(t('savedSigned'));
+  } catch (x) { fail(x); }
+});
 $('#rcfile').addEventListener('change', async e => {
   const f = e.target.files[0], id = e.target.dataset.id; if (!f || !id) return;
   try { setDot(t('uploading')); const blob = await S.compress(f); const path = await API.upload('receipts', `${cur.project.id}/${S.uid()}.${blob.type === 'application/pdf' ? 'pdf' : 'jpg'}`, blob); await save('expenses', id, 'receipt', path); render(); }
