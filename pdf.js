@@ -122,7 +122,7 @@ function snapshot(b, contact, lang) {
   const c = S.calc(b), p = b.project, k = contact || {};
   return {
     v: 1, lang, created: new Date().toISOString(),
-    project: { title: p.title || '', client_name: p.client_name || '', client_phone: p.client_phone || '', client_email: p.client_email || '', address: p.address || '', start_date: p.start_date || null, end_date: p.end_date || null, tax_rate: +p.tax_rate || 0 },
+    project: { title: p.title || '', details: p.details || '', client_name: p.client_name || '', client_phone: [p.client_phone, p.client_phone2].filter(Boolean).join(' / '), client_email: p.client_email || '', address: p.address || '', start_date: p.start_date || null, end_date: p.end_date || null, tax_rate: +p.tax_rate || 0 },
     contact: { company: k.company || 'Grupo Sonec', legal_name: k.legal_name || '', license_no: k.license_no || '', address: k.address || '', phone: k.phone || '', email: k.email || '', contact_name: k.contact_name || k.name || '', warranty: k.warranty || '', extra_terms: k.extra_terms || '' },
     items: b.items.map(i => ({ id: i.id, kind: i.kind === 'lab' ? 'lab' : 'mat', description: i.description || '', qty: +i.qty || 0, price: +i.price || 0 })),
     cos: c.coOk.map(x => ({ id: x.id, title: x.title || '', kind: x.kind === 'lab' ? 'lab' : 'mat', amount: +x.amount || 0 })),
@@ -267,7 +267,7 @@ function estimateBody(D, snap) {
 /* ---- the three documents ---- */
 async function estimatePdf(snap) {
   await logo(); const D = Doc(TX[snap.lang].estimate, snap.project.title, snap), T = D.T;
-  D.head(); partyBlock(D, snap); estimateBody(D, snap);
+  D.head(); partyBlock(D, snap); if (snap.project.details) { D.h2(T.project); D.p(snap.project.details); } estimateBody(D, snap);
   D.p(T.estNote, { size: 9, color: MUTE }); D.p(T.validity, { size: 9, color: MUTE });
   D.sign(false);
   return D.finish(fileName(snap.lang === 'es' ? 'estimado' : 'estimate', snap));
@@ -277,7 +277,7 @@ async function contractPdf(snap) {
   D.head();
   let n = 0; const sec = t => D.h2(`${++n}. ${t}`);
   sec(s.parties); partyBlock(D, snap);
-  sec(s.scope); D.p(C.scope(snap)); estimateBody(D, snap);
+  sec(s.scope); D.p(C.scope(snap)); if (snap.project.details) D.p(snap.project.details, { color: MUTE }); estimateBody(D, snap);
   sec(s.price); D.p(C.price(snap));
   sec(s.adjust); C.adjust().forEach((t, i) => D.p(t, { indent: i && i < 6 ? 14 : 0, gap: i && i < 6 ? 2 : 6, bold: i === 0 }));
   sec(s.pay); D.p(C.pay(snap));

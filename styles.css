@@ -273,3 +273,23 @@ body{padding-left:env(safe-area-inset-left);padding-right:env(safe-area-inset-ri
 .sbtxt{flex:1 1 260px}.sbtxt b{display:block;font-size:17px}.sbtxt small{color:var(--mute);font-size:14px}
 .sbbtn{display:flex;gap:8px;flex-wrap:wrap}.sbbtn .primary,.sbbtn .btn2{min-height:44px;padding:8px 16px;text-decoration:none;display:inline-flex;align-items:center}
 .sbhint{flex-basis:100%;color:var(--mute);font-size:13px}
+
+/* new project form */
+.npf{max-width:760px}
+.npf fieldset{border:0;border-top:1px solid var(--line);margin:18px 0 0;padding:18px 0 0}
+.npf legend{display:flex;align-items:center;gap:10px;font:700 20px "Barlow Semi Condensed",Barlow,sans-serif;padding:0 10px 0 0}
+.npf legend b{display:grid;place-items:center;width:30px;height:30px;border-radius:50%;background:var(--cuf);color:#fff;font-size:16px}
+.npf label{display:block;font-size:14px;color:var(--mute);font-weight:600;margin-bottom:14px}
+.npf label i{color:#b23a26;font-style:normal}
+.npf input,.npf select,.npf textarea{display:block;width:100%;margin-top:6px;padding:11px 12px;border:1px solid var(--line);border-radius:10px;background:var(--bg);color:var(--ink);font:16px Barlow,sans-serif;min-height:46px}
+.npf textarea,.tarea{resize:vertical;line-height:1.5}
+.npf [aria-invalid=true],.ed [aria-invalid=true]{border-color:#b23a26;box-shadow:0 0 0 2px rgba(178,58,38,.2)}
+.ferr{display:block;color:#b23a26;font-weight:600;font-size:14px;margin-top:4px}.ferr:empty{display:none}
+.npbar{position:sticky;bottom:0;display:flex;justify-content:flex-end;gap:10px;background:var(--card);padding:14px 0 4px;border-top:1px solid var(--line);margin-top:8px}
+.npbar .primary{min-width:180px}
+.tarea{display:block;width:100%;margin-top:4px;padding:10px 12px;border:1px solid var(--line);border-radius:10px;background:var(--bg);color:var(--ink);font:16px Barlow,sans-serif}
+.pclient{display:flex;flex-wrap:wrap;gap:4px 16px;align-items:center;margin:-2px 0 14px;font-size:15px;color:var(--mute)}
+.pclient b{color:var(--ink)}.pclient a{color:var(--cu2);font-weight:600;text-decoration:none}
+.linkbtn{background:none;border:0;color:var(--cu2);font:600 15px Barlow,sans-serif;text-decoration:underline;cursor:pointer;min-height:36px;padding:0 4px}
+.cbtns{display:flex;gap:8px;flex-wrap:wrap;margin-top:4px}.cbtns a{text-decoration:none}
+@media(max-width:600px){.npbar .btn2,.npbar .primary{flex:1}}

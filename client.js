@@ -21,6 +21,7 @@ function page() {
 function overview(c) {
   const nx = b.steps.find(s => !s.done), u = b.updates[0], pend = b.change_orders.filter(x => x.status === 'pending');
   return `${pend.length ? `<div class="card" style="border-color:var(--cu)"><h2>${t('co_pending')}</h2><p class="sub">${pend.map(x => esc(x.title) + ' · ' + money(x.amount)).join('<br>')}</p><button class="primary" data-tab="changes">${t('changes')}</button></div>` : ''}
+  ${b.project.details ? `<div class="card"><h2>${t('aboutProject')}</h2><p style="white-space:pre-wrap;margin:6px 0 0">${esc(b.project.details)}</p></div>` : ''}
   <div class="kpis"><div class="kpi"><small>${t('total')}</small><b>${money(c.tot)}</b></div><div class="kpi pos"><small>${t('paidSoFar')}</small><b>${money(c.paid)}</b></div><div class="kpi"><small>${t('remaining')}</small><b>${money(c.bal)}</b></div><div class="kpi"><small>${t('materials')}</small><b>${c.mb} / ${b.materials.length}</b></div></div>
   <div class="cols"><div class="card"><h2>${t('next')}</h2>${nx ? `<p class="sub">${esc(nx.title)}${nx.due_date ? ' · ' + fdate(nx.due_date) : ''}</p>` : `<p class="sub">${t('st_done')}</p>`}<div class="bar"><i style="width:${c.pct}%"></i></div><small class="sub">${c.sd} / ${b.steps.length} ${t('steps').toLowerCase()}</small></div>
   <div class="card"><h2>${t('updates')}</h2>${u ? `<div class="upd"><small>${fdate(u.created_at)}</small><p>${esc(u.body)}</p></div>${S.photos((u.photos || []).slice(0, 4))}` : `<p class="sub">${t('none')}</p>`}</div></div>${contactCard()}`;

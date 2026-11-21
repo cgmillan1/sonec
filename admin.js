@@ -40,7 +40,7 @@ function home() {
   const up = B.flatMap(b => b.steps.filter(s => !s.done && s.due_date && s.due_date <= lim).map(s => ({ ...s, pt: b.project.title, late: s.due_date < today }))).sort((a, b) => a.due_date.localeCompare(b.due_date));
   return topbar() + `<main><div class="wrap">
   <div class="secthead"><h1>${t('projects')}</h1>${creating ? '' : `<button class="primary" data-newp>${t('newProject')}</button>`}</div>
-  ${creating ? `<div class="card"><h2>${t('newProjectT')}</h2><form class="form" id="newpf" style="margin-top:12px"><label class="wide">${t('ptitle')} *<input id="np-title" required maxlength="200" placeholder="${t('ptitleEx')}"></label><label>${t('clientName')}<input id="np-client" maxlength="200"></label><label>${t('status')}<select id="np-status">${STATUSES.map(s => `<option value="${s}">${t('st_' + s)}</option>`).join('')}</select></label><div class="wide" style="display:flex;gap:10px;flex-wrap:wrap;margin-bottom:12px"><button class="primary" type="submit">${t('create')}</button><button class="btn2" type="button" data-cancelnew>${t('cancel')}</button></div></form></div>` : ''}
+  ${creating ? newForm() : ''}
   ${B.length ? `<div class="filters" role="group" aria-label="${t('status')}">${['all', ...STATUSES].map(s => `<button data-pf="${s}" class="${pfilter === s ? 'on' : ''}" aria-pressed="${pfilter === s}">${s === 'all' ? t('all') : t('st_' + s)} <span class="cnt">${s === 'all' ? B.length : count(s)}</span></button>`).join('')}</div>` : ''}
   ${showInstall() ? `<div class="card" style="display:flex;gap:12px;align-items:center;flex-wrap:wrap"><img src="icon-180.png" alt="" width="48" height="48" style="border-radius:11px"><div style="flex:1 1 220px"><b>${t('installT')}</b><p class="sub" style="margin:2px 0 0">${t('installS')}</p></div><button class="btn2" data-hideinstall>${t('hide')}</button></div>` : ''}
   ${B.length ? `<div class="kpis">${kpi(t('contracts'), sum('tot'))}${kpi(t('collected'), sum('paid'))}${kpi(t('receivable'), sum('bal'))}${kpi(t('spent'), sum('spent'))}${kpi(t('profit'), sum('profit'), sum('profit') < 0 ? 'neg' : 'pos', t('profitSub'))}</div>
@@ -57,6 +57,29 @@ function home() {
   </div></main>`;
 }
 
+const fe = k => `<small class="ferr" id="err-${k}" role="alert"></small>`;
+function newForm() {
+  const svc = S.SERVICES.map(s => `<option value="${s}">${t('svc_' + s)}</option>`).join('');
+  return `<form class="card npf" id="newpf" novalidate>
+  <h2>${t('newProjectT')}</h2>
+  <fieldset><legend><b>1</b>${t('npStep1')}</legend>
+    <label>${t('fullName')} <i>*</i><input id="np-name" autocomplete="off" maxlength="200" placeholder="Ej. María López">${fe('name')}</label>
+    <div class="grid2"><label>${t('phone1')} <i>*</i><input id="np-phone" type="tel" inputmode="tel" maxlength="40" placeholder="(801) 555-0134">${fe('phone')}</label>
+    <label>${t('email')} <i>*</i><input id="np-email" type="email" inputmode="email" autocapitalize="off" maxlength="160" placeholder="nombre@gmail.com">${fe('email')}</label></div>
+    <label>${t('phone2')}<input id="np-phone2" type="tel" inputmode="tel" maxlength="40"></label>
+  </fieldset>
+  <fieldset><legend><b>2</b>${t('npStep2')}</legend>
+    <div class="grid2"><label>${t('service')}<select id="np-service">${svc}</select></label>
+    <label>${t('status')}<select id="np-status">${STATUSES.map(s => `<option value="${s}">${t('st_' + s)}</option>`).join('')}</select></label></div>
+    <label>${t('projAddress')}<input id="np-address" maxlength="300" autocomplete="off" placeholder="1234 E Main St, Lehi, UT"></label>
+    <label>${t('ptitle')}<input id="np-title" maxlength="200" placeholder="${t('ptitleEx')}"><small class="hint" style="display:block;margin:4px 0 0">${t('titleAuto')}</small></label>
+  </fieldset>
+  <fieldset><legend><b>3</b>${t('npStep3')}</legend>
+    <label>${t('details')}<textarea id="np-details" rows="5" maxlength="4000" placeholder="${t('detailsPh')}"></textarea><small class="hint" style="display:block;margin:4px 0 0">${t('detailsHint')}</small></label>
+  </fieldset>
+  <div class="npbar"><button class="btn2" type="button" data-cancelnew>${t('cancel')}</button><button class="primary" type="submit">${t('create')}</button></div>
+  </form>`;
+}
 function leadsCard() {
   const open = leads.filter(l => l.status === 'new' || l.status === 'contacted');
   if (!open.length) return '';
@@ -74,7 +97,7 @@ function project() {
   return topbar() + `<nav class="cbar"><div class="wrap"><button data-home>${t('back')}</button>${Object.keys(tabs).map(k => `<button data-ctab="${k}" class="${ctab === k ? 'on' : ''}">${t(k)}${k === 'messages' && u ? `<span class="badge">${u}</span>` : ''}</button>`).join('')}</div></nav>
   <main class="ed"><div class="wrap"><div class="phead"><label class="sr" for="ptitle-top">${t('ptitle')}</label><input id="ptitle-top" class="titleinp" data-t="projects" data-id="${p.id}" data-f="title" value="${esc(p.title)}" placeholder="${t('ptitleEx')}" maxlength="200">
   <label class="stlab"><span class="sr">${t('status')}</span><select class="stsel2 st-${stOf(p)}" data-t="projects" data-id="${p.id}" data-f="status">${STATUSES.map(s => `<option value="${s}"${stOf(p) === s ? ' selected' : ''}>${t('st_' + s)}</option>`).join('')}</select></label></div>
-  <p class="sub" style="margin:-4px 0 14px">${esc(p.client_name)}${p.client_name && p.address ? ' · ' : ''}${esc(p.address || '')}</p>
+  <div class="pclient"><b>${esc(p.client_name || '·')}</b>${p.client_phone ? `<a href="tel:+${S.intl(p.client_phone)}">${esc(p.client_phone)}</a>` : ''}${p.client_email ? `<a href="mailto:${esc(p.client_email)}">${esc(p.client_email)}</a>` : ''}${p.address ? `<span>${esc(p.address)}</span>` : ''}<button class="linkbtn" data-ctab="project">${t('edit')}</button></div>
   ${shareBar(p)}${tabs[ctab]()}</div></main>`;
 }
 function buyForm() {
@@ -178,24 +201,34 @@ function cMsgs() {
 const clientLink = p => new URL('proyecto.html?p=' + p.client_token, location.href).href;
 function shareBar(p) {
   const link = clientLink(p), digits = (p.client_phone || '').replace(/\D/g, ''), phone = digits.length === 10 ? '1' + digits : digits;
-  const msg = encodeURIComponent(t('shareMsg').replace('{n}', (p.client_name || '').replace(/\s*\(.*\)\s*$/, '').split(' ')[0] || '').replace(/\s+,/, ',') + link);
+  const msg = encodeURIComponent(t('shareMsg').replace('{n}', (p.client_name || '').replace(/\s*\(.*\)\s*$/, '').replace(/^familia\s+/i, '').split(' ')[0] || '').replace(/\s+,/, ',') + link);
   return `<div class="sharebar"><div class="sbtxt"><b>${t('shareT')}</b><small>${t('shareS')}</small></div>
   <div class="sbbtn"><button class="primary" data-copylink="${esc(link)}">${t('copy')}</button>
   <a class="btn2" href="https://wa.me/${phone}?text=${msg}" target="_blank" rel="noopener">WhatsApp</a>
   <a class="btn2" href="sms:${phone ? '+' + phone : ''}?&body=${msg}">${t('sms')}</a>
+  <a class="btn2" href="mailto:${esc(p.client_email || '')}?subject=${encodeURIComponent((S.L === 'es' ? 'Tu proyecto con Sonec: ' : 'Your project with Sonec: ') + (p.title || ''))}&body=${msg}">${t('mail')}</a>
   <a class="btn2" href="${esc(link)}" target="_blank" rel="noopener">${t('open')}</a></div>
   ${phone ? '' : `<small class="sbhint">${t('noPhone')}</small>`}</div>`;
 }
+const tx = (tb, r, f, rows = 4, ph = '') => `<textarea rows="${rows}" data-t="${tb}" data-id="${r.id}" data-f="${f}" aria-label="${esc(t('f_' + f))}" maxlength="4000" placeholder="${esc(ph)}" class="tarea">${esc(r[f] || '')}</textarea>`;
+function contactBtns(p) {
+  const ph = S.intl(p.client_phone), link = clientLink(p);
+  return `<div class="cbtns">${p.client_phone ? `<a class="btn2" href="tel:+${ph}">${t('call')}</a><a class="btn2" href="sms:+${ph}">${t('textMsg')}</a><a class="btn2" href="https://wa.me/${ph}" target="_blank" rel="noopener">WhatsApp</a>` : ''}${p.client_email ? `<a class="btn2" href="mailto:${esc(p.client_email)}">${t('mail')}</a>` : ''}</div>`;
+}
 function cProj() {
-  const p = cur.project, link = clientLink(p), wa = (p.client_phone || '').replace(/\D/g, '');
-  const msg = encodeURIComponent((S.L === 'es' ? 'Hola, aquí puedes ver tu proyecto con Sonec: ' : 'Hi, here you can follow your project with Sonec: ') + link);
-  return `<div class="card"><h2>${t('projInfo')}</h2><div class="grid2" style="margin-top:12px">
+  const p = cur.project, link = clientLink(p);
+  return `<div class="card"><h2>${t('clientCard')}</h2><p class="sub">${t('clientCardSub')}</p>
+  <label>${t('fullName')}${fld('projects', p, 'client_name')}</label>
+  <div class="grid2"><label>${t('phone1')}${fld('projects', p, 'client_phone', 'tel')}</label><label>${t('email')}${fld('projects', p, 'client_email', 'email')}</label>
+  <label>${t('phone2')}${fld('projects', p, 'client_phone2', 'tel')}</label></div>
+  ${contactBtns(p)}</div>
+  <div class="card"><h2>${t('projCard')}</h2><div class="grid2" style="margin-top:12px">
   <label>${t('ptitle')}${fld('projects', p, 'title')}</label><label>${t('status')}${sel('projects', { ...p, status: stOf(p) }, 'status', STATUSES.map(s => [s, t('st_' + s)]))}</label>
-  <label>${t('clientName')}${fld('projects', p, 'client_name')}</label><label>${t('address')}${fld('projects', p, 'address')}</label>
-  <label>${t('clientPhone')}${fld('projects', p, 'client_phone', 'tel')}</label><label>${t('clientEmail')}${fld('projects', p, 'client_email', 'email')}</label>
-  <label>${t('start')}${fld('projects', p, 'start_date', 'date')}</label><label>${t('end')}${fld('projects', p, 'end_date', 'date')}</label></div></div>
-  <div class="card"><h2>${t('clientLink')}</h2><p class="sub">${t('linkHint')}</p><div class="linkbox"><code id="clink">${esc(link)}</code><button class="btn2" data-copy>${t('copy')}</button><a class="btn2" href="${esc(link)}" target="_blank" rel="noopener">${t('open')}</a><a class="btn2" href="https://wa.me/${wa}?text=${msg}" target="_blank" rel="noopener">${t('whatsapp')}</a></div><p class="hint">${t('rotateHint')}</p><button class="btn2" data-rotate>${t('rotate')}</button></div>
-  <div class="card"><div class="linkbox"><button class="btn2" data-print>${t('printEst')}</button><button class="btn2" data-dup>${t('duplicate')}</button></div></div>
+  <label>${t('service')}${sel('projects', { ...p, service: p.service || 'other' }, 'service', S.SERVICES.map(s => [s, t('svc_' + s)]))}</label><label>${t('projAddress')}${fld('projects', p, 'address')}</label>
+  <label>${t('start')}${fld('projects', p, 'start_date', 'date')}</label><label>${t('end')}${fld('projects', p, 'end_date', 'date')}</label></div>
+  <label>${t('details')}${tx('projects', p, 'details', 5, t('detailsPh'))}</label><p class="hint">${t('detailsHint')}</p></div>
+  <div class="card"><h2>${t('clientLink')}</h2><p class="sub">${t('linkHint')}</p><div class="linkbox"><code id="clink">${esc(link)}</code></div><p class="hint">${t('rotateHint')}</p><button class="btn2" data-rotate>${t('rotate')}</button></div>
+  <div class="card"><div class="linkbox"><button class="btn2" data-dup>${t('duplicate')}</button></div></div>
   <div class="card"><h2>${t('deleteP')}</h2><p class="sub">${t('deleteConfirm')}</p><div class="linkbox"><input id="delc" style="flex:1 1 200px;padding:10px 12px;border:1px solid var(--line);border-radius:10px;background:var(--bg);min-height:44px;font-size:16px" aria-label="${t('deleteP')}"><button class="btn2 danger" data-delp>${t('deleteP')}</button></div></div>`;
 }
 
@@ -245,12 +278,18 @@ app.addEventListener('change', async e => {
   if (n.type === 'number') v = v === '' ? 0 : +v;
   if (n.type === 'date' && !v) v = null;
   if (d.f === 'budget_id' && !v) v = null;
+  if (d.t === 'projects' && (d.f === 'client_phone' || d.f === 'client_phone2') && v) { if (!S.phoneOk(v)) { S.toast(t('errPhone')); n.setAttribute('aria-invalid', 'true'); return n.focus(); } v = S.fmtPhone(v); n.value = v; n.removeAttribute('aria-invalid'); }
+  if (d.t === 'projects' && d.f === 'client_email' && v) { if (!S.emailOk(v)) { S.toast(t('errEmail')); n.setAttribute('aria-invalid', 'true'); return n.focus(); } v = v.trim().toLowerCase(); n.value = v; n.removeAttribute('aria-invalid'); }
+  if (d.t === 'projects' && d.f === 'client_name' && !String(v).trim()) { n.value = rowOf('projects', d.id).client_name || ''; return S.toast(t('errName')); }
   if (d.f === 'share_pct') { v = Math.min(100, Math.max(0, +v || 0)); n.value = v; }
   if (d.t === 'projects' && d.f === 'title' && !String(v).trim()) { n.value = rowOf('projects', d.id).title || ''; return n.focus(); }
   const okSaved = await save(d.t, d.id, d.f, v);
-  if (okSaved && (n.type !== 'text' || /category|title/.test(d.f) && ctab !== 'progress') && n.tagName !== 'TEXTAREA') render();
+  if (okSaved && (n.type !== 'text' || d.t === 'projects' || /category|title/.test(d.f) && ctab !== 'progress') && n.tagName !== 'TEXTAREA') render();
 });
 
+app.addEventListener('focusout', e => {
+  const n = e.target; if (n.id === 'np-phone' || n.id === 'np-phone2') n.value = S.fmtPhone(n.value);
+});
 app.addEventListener('submit', async e => {
   e.preventDefault(); const id = e.target.id, sb = e.target.querySelector('[type=submit]');
   if (id !== 'loginf') { if (sb && sb.disabled) return; if (sb) sb.disabled = true; }
@@ -262,8 +301,19 @@ app.addEventListener('submit', async e => {
       busy = false; return render();
     }
     if (id === 'newpf') {
-      const title = $('#np-title').value.trim(); if (!title) return $('#np-title').focus();
-      const p = await API.insert('projects', { title, client_name: $('#np-client').value.trim(), status: $('#np-status').value });
+      const v = k => $('#np-' + k).value.trim(), errs = [];
+      document.querySelectorAll('.npf .ferr').forEach(x => x.textContent = ''); document.querySelectorAll('.npf [aria-invalid]').forEach(x => x.removeAttribute('aria-invalid'));
+      if (!v('name') || v('name').split(/\s+/).length < 2 && v('name').length < 3) errs.push(['name', 'errName']);
+      if (!S.phoneOk(v('phone'))) errs.push(['phone', 'errPhone']);
+      if (!S.emailOk(v('email'))) errs.push(['email', 'errEmail']);
+      if (v('phone2') && !S.phoneOk(v('phone2'))) errs.push(['phone2', 'errPhone']);
+      if (errs.length) {
+        errs.forEach(([k, m]) => { const n = $('#np-' + k); n.setAttribute('aria-invalid', 'true'); const e = $('#err-' + k); if (e) e.textContent = t(m); else S.toast(t(m)); });
+        return $('#np-' + errs[0][0]).focus();
+      }
+      const svc = $('#np-service').value;
+      const title = v('title') || `${t('svc_' + svc)} · ${v('name').split(/\s+/).slice(0, 2).join(' ')}`;
+      const p = await API.insert('projects', { title, client_name: v('name'), client_phone: S.fmtPhone(v('phone')), client_phone2: v('phone2') ? S.fmtPhone(v('phone2')) : '', client_email: v('email').toLowerCase(), address: v('address'), service: svc, details: v('details'), status: $('#np-status').value });
       creating = false; B.unshift(blank(p)); ctab = 'project'; return openProject(p.id);
     }
     if (id === 'buyf') {
@@ -304,7 +354,7 @@ app.addEventListener('click', async e => {
     else if (d.leadst) { const [id, st] = d.leadst.split(':'); const l = leads.find(x => x.id === id); Object.assign(l, await API.update('leads', id, { status: st })); render(); }
     else if (d.leadp) {
       const l = leads.find(x => x.id === d.leadp);
-      const p = await API.insert('projects', { title: l.service || (S.L === 'es' ? 'Nuevo proyecto' : 'New project'), client_name: l.name, client_phone: l.phone, client_email: l.email, address: l.city, status: 'estimate_sent' });
+      const p = await API.insert('projects', { title: l.service || (S.L === 'es' ? 'Nuevo proyecto' : 'New project'), client_name: l.name, client_phone: S.fmtPhone(l.phone), client_email: (l.email || '').toLowerCase(), address: l.city, details: l.message || '', status: 'estimate_sent' });
       Object.assign(l, await API.update('leads', l.id, { status: 'won', project_id: p.id }));
       const nb = blank(p);
       if (l.message) { try { nb.comments.push(await API.insert('comments', { project_id: p.id, author: 'client', name: l.name, body: l.message, seen: true })); } catch (_) {} }
@@ -313,7 +363,7 @@ app.addEventListener('click', async e => {
     else if (d.open) { ctab = 'dash'; openProject(d.open); }
     else if ('home' in d) { view = 'home'; cur = null; try { history.replaceState(null, '', location.pathname); } catch (_) {} render(); scrollTo(0, 0); }
     else if (d.ctab) { ctab = d.ctab; if (ctab === 'messages' && unseen(cur)) { await API.markSeen(cur.project.id); cur.comments.forEach(c => c.seen = true); } render(); scrollTo(0, 0); }
-    else if ('newp' in d) { creating = true; render(); $('#np-title')?.focus(); }
+    else if ('newp' in d) { creating = true; render(); $('#newpf')?.scrollIntoView({ block: 'start' }); $('#np-name')?.focus(); }
     else if ('cancelnew' in d) { creating = false; render(); }
     else if (d.pf) { pfilter = d.pf; render(); }
     else if ('sample' in d) { b.disabled = true; const id = await makeSample(); ctab = 'dash'; openProject(id); }
