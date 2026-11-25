@@ -220,3 +220,18 @@
     }
   });
 }
+
+/* hero intro: the outdoor kitchen builds itself once, then rests on the photo */
+(function () {
+  var v = document.querySelector('.herovid');
+  if (!v) return;
+  var rm = window.matchMedia && matchMedia('(prefers-reduced-motion: reduce)').matches;
+  var save = navigator.connection && navigator.connection.saveData;
+  if (rm || save) { v.remove(); return; }
+  v.muted = true;
+  v.src = v.dataset.src;
+  v.addEventListener('playing', function () { v.classList.add('on'); }, { once: true });
+  v.addEventListener('error', function () { v.remove(); }, { once: true });
+  var p = v.play();
+  if (p && p.catch) p.catch(function () { v.remove(); });
+})();
