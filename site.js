@@ -37,13 +37,26 @@
     pShowerD: 'Quitamos la regadera vieja hasta la estructura e hicimos una regadera de entrada con impermeabilización completa, porcelanato tipo mármol y piso de mosaico.',
     pTubD: 'Un baño completo: tina nueva, paredes y piso de porcelanato, nicho de mosaico, regadera de mano y luces empotradas.',
     s1: 'Demolición hasta la estructura', s2: 'Estructura y tubería revisadas', s3: 'Base de mortero y paneles para humedad', s4: 'Impermeabilización de paredes y piso', s5: 'Porcelanato tipo mármol en formato grande', s6: 'Piso de mosaico y paredes completas', s7: 'Terminado: regadera de entrada',
-    t1: 'Así estaba: tina vieja y paredes dañadas', t2: 'Plomería y electricidad al descubierto', t3: 'Paneles nuevos resistentes a la humedad', t4: 'Tina nueva y base para el nicho', t5: 'Empieza el porcelanato', t6: 'Paredes niveladas pieza por pieza', t7: 'Membrana bajo el piso contra grietas', t8: 'Nicho de mosaico hexagonal', t9: 'Piso de porcelanato y muro bajo', t10: 'Terminado: tina, nicho y regadera de mano', t11: 'Luces empotradas nuevas',
+    t1: 'Así estaba: tina vieja y paredes dañadas', t2: 'Plomería y electricidad al descubierto', t3: 'Paneles nuevos resistentes a la humedad', t4: 'Tina nueva y base para el nicho', t5: 'Empieza el porcelanato', t6: 'Paredes niveladas pieza por pieza', t7: 'Membrana bajo el piso contra grietas', t8: 'Nicho de mosaico hexagonal', t9: 'Piso de porcelanato y muro bajo', t10: 'Terminado: tina, nicho y regadera de mano', t11: 'Luces empotradas nuevas', s8: 'Lista para usar',
+    pKitchen: 'Cocina abierta', pDeck2: 'Deck elevado', pFloor: 'Pisos de madera',
+    pKitchenD: 'Abrimos la casa: muros nuevos, piso nuevo, cocina con isla grande, gabinetes, luces colgantes y un baño principal con regadera de vidrio.',
+    pDeck2D: 'Un deck elevado con vista al valle: estructura de madera tratada, piso de composite y barandal de metal.',
+    pFloorD: 'Restauramos pisos de madera originales: lijado, prueba de color, tinte y barniz hasta dejarlos brillando.',
+    k1: 'Así estaba: cuartos cerrados y oscuros', k2: 'Estructura de los muros nuevos', k3: 'Un espacio más abierto', k4: 'Piso nuevo en toda la planta', k5: 'Cocina con isla y gabinetes nuevos', k6: 'Baño principal con regadera de vidrio',
+    d1: 'Postes, vigas y estructura', d2: 'Barandal de metal', d3: 'Terminado, con vista al valle', d4: 'Listo para usarse',
+    f1: 'Lijado de orillas a mano', f2: 'Madera lijada, sin el acabado viejo', f3: 'Prueba de color', f4: 'Aplicando el tinte', f5: 'Barniz final', f6: 'Brillo como nuevo', f7: 'Terminado',
     title: 'Grupo Sonec · Decks, sótanos, techos y remodelaciones en Utah'
   };
   const EN_EXTRA = { pShowerD: 'We took the old shower down to the studs and built a walk-in shower with full waterproofing, marble-look porcelain and a mosaic floor.',
     pTubD: 'A full bathroom: new tub, porcelain walls and floor, a mosaic niche, a handheld shower and recessed lights.',
     s1: 'Demolition down to the studs', s2: 'Framing and plumbing checked', s3: 'Mortar bed and moisture-resistant board', s4: 'Waterproofing on walls and floor', s5: 'Large marble-look porcelain', s6: 'Mosaic floor and finished walls', s7: 'Finished: walk-in shower',
-    t1: 'Before: old tub and damaged walls', t2: 'Plumbing and wiring opened up', t3: 'New moisture-resistant board', t4: 'New tub and the niche framed', t5: 'Porcelain goes up', t6: 'Walls leveled tile by tile', t7: 'Crack-isolation membrane under the floor', t8: 'Hexagon mosaic niche', t9: 'Porcelain floor and half wall', t10: 'Finished: tub, niche and handheld shower', t11: 'New recessed lights', pause: 'Pause', errName: 'Please type your name.', errContact: 'Please add a phone or an email.', errEmail: 'Please check the email.', errSend: 'We could not send it. Call us at (385) 266-0675.', errMany: 'We are getting many requests right now. Call us at (385) 266-0675.', sending: 'Sending…' };
+    t1: 'Before: old tub and damaged walls', t2: 'Plumbing and wiring opened up', t3: 'New moisture-resistant board', t4: 'New tub and the niche framed', t5: 'Porcelain goes up', t6: 'Walls leveled tile by tile', t7: 'Crack-isolation membrane under the floor', t8: 'Hexagon mosaic niche', t9: 'Porcelain floor and half wall', t10: 'Finished: tub, niche and handheld shower', t11: 'New recessed lights', s8: 'Ready to use',
+    pKitchenD: 'We opened up the house: new walls, new flooring, a kitchen with a large island, cabinets, pendant lights and a primary bath with a glass shower.',
+    pDeck2D: 'A raised deck with a view of the valley: treated wood framing, composite decking and a metal railing.',
+    pFloorD: 'We restored original hardwood floors: sanding, a color test, stain and finish until they shine.',
+    k1: 'Before: closed, dark rooms', k2: 'Framing the new walls', k3: 'A more open space', k4: 'New flooring on the whole floor', k5: 'Kitchen with island and new cabinets', k6: 'Primary bath with glass shower',
+    d1: 'Posts, beams and framing', d2: 'Metal railing', d3: 'Finished, with a view of the valley', d4: 'Ready to enjoy',
+    f1: 'Hand sanding the edges', f2: 'Wood sanded, old finish removed', f3: 'Color test', f4: 'Applying the stain', f5: 'Final finish coat', f6: 'Shining like new', f7: 'Finished', pause: 'Pause', errName: 'Please type your name.', errContact: 'Please add a phone or an email.', errEmail: 'Please check the email.', errSend: 'We could not send it. Call us at (385) 266-0675.', errMany: 'We are getting many requests right now. Call us at (385) 266-0675.', sending: 'Sending…' };
 
   const nodes = [...document.querySelectorAll('[data-i18n]')], EN = {};
   nodes.forEach(n => { EN[n.dataset.i18n] = n.textContent; });
@@ -78,10 +91,14 @@
     /* the deck is written in the page (works without JavaScript); the bathrooms are added here */
     const deck = [...list.querySelectorAll('button')].map(b => { const im = b.querySelector('img'); return { img: im.getAttribute('src').replace('-sm.jpg', ''), w: +im.width || 800, h: +im.height || 600, k: b.querySelector('span').dataset.i18n }; });
     const tall = (keys, files) => files.map((f, n) => ({ img: 'img/' + f, w: 600, h: 800, k: keys + (n + 1) }));
+    const wide = (keys, files) => files.map((f, n) => ({ img: 'img/' + f, w: 800, h: 600, k: keys + (n + 1) }));
     const P = {
       deck: { d: 'workP2', tall: false, steps: deck },
-      shower: { d: 'pShowerD', tall: true, steps: tall('s', ['b1-demolicion', 'b2-estructura', 'b3-base', 'b4-impermeable', 'b5-porcelanato', 'b6-mosaico', 'b7-terminado']) },
-      tub: { d: 'pTubD', tall: true, steps: tall('t', ['t01-antes', 't02-plomeria', 't03-paneles', 't04-tina', 't05-porcelanato', 't06-nivelacion', 't07-membrana', 't08-nicho', 't09-piso', 't10-terminado', 't11-luces']) }
+      shower: { d: 'pShowerD', tall: true, steps: tall('s', ['b1-demolicion', 'b2-estructura', 'b3-base', 'b4-impermeable', 'b5-porcelanato', 'b6-mosaico', 'b7-terminado', 'b8-listo']) },
+      tub: { d: 'pTubD', tall: true, steps: tall('t', ['t01-antes', 't02-plomeria', 't03-paneles', 't04-tina', 't05-porcelanato', 't06-nivelacion', 't07-membrana', 't08-nicho', 't09-piso', 't10-terminado', 't11-luces']) },
+      kitchen: { d: 'pKitchenD', tall: false, steps: wide('k', ['k1-antes', 'k2-estructura', 'k3-muro', 'k4-espacio', 'k5-cocina', 'k6-bano']) },
+      deck2: { d: 'pDeck2D', tall: false, steps: wide('d', ['d1-estructura', 'd2-barandal', 'd3-vista', 'd4-terminado']) },
+      floor: { d: 'pFloorD', tall: false, steps: wide('f', ['f1-lijado', 'f2-madera', 'f3-prueba', 'f4-tinte', 'f5-barniz', 'f6-brillo', 'f7-terminado']) }
     };
     let frames = [], chips = [], bars = [], i = 0, timer = null, played = false, cur = 'deck';
     const build = id => {
@@ -95,6 +112,7 @@
       frames = [...frame.querySelectorAll(':scope > img')]; bars = [...barsBox.children]; chips = [...list.querySelectorAll('[data-step]')];
       range.max = frames.length; desc.dataset.i18n = p.d; desc.textContent = t(p.d);
       document.querySelectorAll('[data-proj]').forEach(b => b.setAttribute('aria-pressed', String(b.dataset.proj === id)));
+      const on = document.querySelector(`[data-proj="${id}"]`), box = on && on.parentElement; if (box && box.scrollWidth > box.clientWidth) box.scrollTo({ left: on.offsetLeft - box.clientWidth / 2 + on.clientWidth / 2, behavior: reduce ? 'auto' : 'smooth' });
       strip.scrollTo({ left: 0 }); show(0);
     };
     const show = (n, fromUser) => {
