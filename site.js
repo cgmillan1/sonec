@@ -51,6 +51,12 @@
     v1: 'Textura nueva en el techo', v2: 'Pasillo con luz empotrada', v3: 'Luces empotradas en toda la planta', v4: 'Empieza el piso vinílico', v5: 'Piso en la recámara principal', v6: 'Piso hasta la puerta del baño', v7: 'Pasillo terminado', v8: 'Cocineta con piso nuevo', v9: 'Recámara con closet doble', v10: 'Recámara terminada',
     pPorch: 'Entrada de composite', pPorchD: 'Una entrada nueva con escalones anchos de composite, marco en ángulo y descanso al nivel de la banqueta.',
     e1: 'Piso de composite con marco', e2: 'Escalones con orillas en ángulo', e3: 'Detalle del descanso', e4: 'Escalones vistos de lado', e5: 'Descanso terminado', e6: 'Terminado: entrada lista',
+    pShop: 'Pintura de taller', pShopD: 'Pintamos un taller mecánico con franjas en los colores del negocio: blanco arriba, naranja al centro y azul marino abajo, incluyendo el tapanco de madera.',
+    w1: 'Tapanco y muros antes de pintar', w2: 'Primeras capas de las franjas', w3: 'Muro con ventanas', w4: 'Franjas junto al portón', w5: 'Muro del tapanco en azul marino', w6: 'Franjas terminadas', w7: 'Piso lavado a presión', w8: 'Terminado: taller con los colores del negocio',
+    pWall: 'Pared nueva en la escalera', pWallD: 'Cerramos un hueco junto a la escalera: estructura, drywall, cinta, compuesto y textura para que la pared nueva se vea igual que el resto de la casa.',
+    p1: 'Estructura para la pared nueva', p2: 'Drywall colocado', p3: 'Cinta en las uniones con el techo', p4: 'Primera capa de compuesto', p5: 'Compuesto alisado', p6: 'Terminado: textura igual al resto de la casa',
+    pKitchenette: 'Cocineta nueva', pKitchenetteD: 'Una cocineta completa en un sótano: gabinetes grises, cubierta de cuarzo, campana, azulejo negro y conexiones para estufa y fregadero.',
+    g1: 'Paredes listas para la cocineta', g2: 'Gabinetes, estufa y fregadero', g3: 'Cubierta de cuarzo', g4: 'Ajustes finales de la cubierta', g5: 'Plantilla para el azulejo', g6: 'Instalando el azulejo negro', g7: 'Terminado: cocineta lista',
     d1: 'Postes, vigas y estructura', d2: 'Barandal de metal', d3: 'Terminado, con vista al valle', d4: 'Listo para usarse',
     f1: 'Lijado de orillas a mano', f2: 'Madera lijada, sin el acabado viejo', f3: 'Prueba de color', f4: 'Aplicando el tinte', f5: 'Barniz final', f6: 'Brillo como nuevo', f7: 'Terminado',
     title: 'Grupo Sonec · Decks, sótanos, techos y remodelaciones en Utah'
@@ -71,6 +77,12 @@
     v1: 'New ceiling texture', v2: 'Hallway with recessed light', v3: 'Recessed lights across the floor', v4: 'Vinyl plank flooring begins', v5: 'Flooring in the main bedroom', v6: 'Flooring up to the bathroom door', v7: 'Hallway finished', v8: 'Kitchenette with new floor', v9: 'Bedroom with double closet', v10: 'Bedroom finished',
     pPorchD: 'A new entry with wide composite steps, a mitered picture frame and a landing at sidewalk level.',
     e1: 'Composite decking with border', e2: 'Steps with mitered edges', e3: 'Landing detail', e4: 'Steps from the side', e5: 'Landing finished', e6: 'Finished: entry ready',
+    pShopD: 'We painted an auto shop in the business colors: white on top, orange in the middle and navy below, including the wood loft.',
+    w1: 'Loft and walls before paint', w2: 'First coats of the stripes', w3: 'Wall with windows', w4: 'Stripes next to the bay door', w5: 'Loft wall in navy', w6: 'Stripes finished', w7: 'Floor pressure washed', w8: 'Finished: shop in the business colors',
+    pWallD: 'We closed an opening next to the stairs: framing, drywall, tape, mud and texture so the new wall matches the rest of the house.',
+    p1: 'Framing for the new wall', p2: 'Drywall hung', p3: 'Tape on the ceiling joints', p4: 'First coat of mud', p5: 'Mud smoothed out', p6: 'Finished: texture matching the house',
+    pKitchenetteD: 'A full basement kitchenette: gray cabinets, quartz countertop, range hood, black tile backsplash and hookups for the range and sink.',
+    g1: 'Walls ready for the kitchenette', g2: 'Cabinets, range and sink', g3: 'Quartz countertop', g4: 'Final countertop adjustments', g5: 'Template for the tile', g6: 'Installing the black tile', g7: 'Finished: kitchenette ready',
     d1: 'Posts, beams and framing', d2: 'Metal railing', d3: 'Finished, with a view of the valley', d4: 'Ready to enjoy',
     f1: 'Hand sanding the edges', f2: 'Wood sanded, old finish removed', f3: 'Color test', f4: 'Applying the stain', f5: 'Final finish coat', f6: 'Shining like new', f7: 'Finished', pause: 'Pause', errName: 'Please type your name.', errContact: 'Please add a phone or an email.', errEmail: 'Please check the email.', errSend: 'We could not send it. Call us at (385) 266-0675.', errMany: 'We are getting many requests right now. Call us at (385) 266-0675.', sending: 'Sending…' };
 
@@ -118,6 +130,9 @@
       basement2: { d: 'pBasement2D', tall: false, steps: wide('n', ['n01-pasillo', 'n02-estructura', 'n03-aislamiento', 'n04-compuesto', 'n05-tina', 'n06-pintura', 'n07-escalera-nicho', 'n08-escalera', 'n09-bano', 'n10-recamara', 'n11-alfombra']) },
       basement3: { d: 'pBasement3D', tall: false, steps: wide('v', ['v01-textura', 'v02-pasillo', 'v03-luces', 'v04-piso', 'v05-piso2', 'v06-bano', 'v07-pasillo', 'v08-cocineta', 'v09-recamara', 'v10-terminado']) },
       porch: { d: 'pPorchD', tall: false, steps: wide('e', ['e1-marco', 'e2-escalones', 'e3-detalle', 'e4-orilla', 'e5-descanso', 'e6-terminado']) },
+      kitchenette: { d: 'pKitchenetteD', tall: false, steps: wide('g', ['g1-paredes', 'g2-gabinetes', 'g3-cubierta', 'g4-instalacion', 'g5-plantilla', 'g6-azulejo', 'g7-terminado']) },
+      shop: { d: 'pShopD', tall: false, steps: wide('w', ['w1-tapanco', 'w2-franjas', 'w3-ventanas', 'w4-porton', 'w5-muro', 'w6-terminado', 'w7-lavado', 'w8-terminado']) },
+      wall: { d: 'pWallD', tall: true, steps: tall('p', ['p1-estructura', 'p2-drywall', 'p3-cinta', 'p4-compuesto', 'p5-resane', 'p6-terminado']) },
       floor: { d: 'pFloorD', tall: false, steps: wide('f', ['f1-lijado', 'f2-madera', 'f3-prueba', 'f4-tinte', 'f5-barniz', 'f6-brillo', 'f7-terminado']) }
     };
     let frames = [], chips = [], bars = [], i = 0, timer = null, played = false, cur = 'deck';
