@@ -33,9 +33,17 @@
     okH: '¡Gracias!', okP: 'Recibimos tu solicitud y te contactaremos pronto.',
     contractorLogin: 'Entrada del contratista', prev: 'Fotos anteriores', next: 'Siguientes fotos', workP2: 'Un deck de composite, una pérgola techada y una cocina exterior con asador empotrado, en un patio de Utah. Míralo tomar forma.', play: 'Reproducir', pause: 'Pausa', stepLabel: 'Paso de la obra', tlEnd: 'Terminado',
     errName: 'Escribe tu nombre.', errContact: 'Escribe un teléfono o un correo.', errEmail: 'Revisa el correo.', errSend: 'No se pudo enviar. Llámanos al (385) 266-0675.', errMany: 'Hay muchas solicitudes en este momento. Llámanos al (385) 266-0675.', sending: 'Enviando…',
+    workH2: 'Nuestro trabajo, de principio a fin', projLabel: 'Proyectos', pDeck: 'Deck y cocina exterior', pShower: 'Regadera nueva', pTub: 'Baño con tina',
+    pShowerD: 'Quitamos la regadera vieja hasta la estructura e hicimos una regadera de entrada con impermeabilización completa, porcelanato tipo mármol y piso de mosaico.',
+    pTubD: 'Un baño completo: tina nueva, paredes y piso de porcelanato, nicho de mosaico, regadera de mano y luces empotradas.',
+    s1: 'Demolición hasta la estructura', s2: 'Estructura y tubería revisadas', s3: 'Base de mortero y paneles para humedad', s4: 'Impermeabilización de paredes y piso', s5: 'Porcelanato tipo mármol en formato grande', s6: 'Piso de mosaico y paredes completas', s7: 'Terminado: regadera de entrada',
+    t1: 'Así estaba: tina vieja y paredes dañadas', t2: 'Plomería y electricidad al descubierto', t3: 'Paneles nuevos resistentes a la humedad', t4: 'Tina nueva y base para el nicho', t5: 'Empieza el porcelanato', t6: 'Paredes niveladas pieza por pieza', t7: 'Membrana bajo el piso contra grietas', t8: 'Nicho de mosaico hexagonal', t9: 'Piso de porcelanato y muro bajo', t10: 'Terminado: tina, nicho y regadera de mano', t11: 'Luces empotradas nuevas',
     title: 'Grupo Sonec · Decks, sótanos, techos y remodelaciones en Utah'
   };
-  const EN_EXTRA = { pause: 'Pause', errName: 'Please type your name.', errContact: 'Please add a phone or an email.', errEmail: 'Please check the email.', errSend: 'We could not send it. Call us at (385) 266-0675.', errMany: 'We are getting many requests right now. Call us at (385) 266-0675.', sending: 'Sending…' };
+  const EN_EXTRA = { pShowerD: 'We took the old shower down to the studs and built a walk-in shower with full waterproofing, marble-look porcelain and a mosaic floor.',
+    pTubD: 'A full bathroom: new tub, porcelain walls and floor, a mosaic niche, a handheld shower and recessed lights.',
+    s1: 'Demolition down to the studs', s2: 'Framing and plumbing checked', s3: 'Mortar bed and moisture-resistant board', s4: 'Waterproofing on walls and floor', s5: 'Large marble-look porcelain', s6: 'Mosaic floor and finished walls', s7: 'Finished: walk-in shower',
+    t1: 'Before: old tub and damaged walls', t2: 'Plumbing and wiring opened up', t3: 'New moisture-resistant board', t4: 'New tub and the niche framed', t5: 'Porcelain goes up', t6: 'Walls leveled tile by tile', t7: 'Crack-isolation membrane under the floor', t8: 'Hexagon mosaic niche', t9: 'Porcelain floor and half wall', t10: 'Finished: tub, niche and handheld shower', t11: 'New recessed lights', pause: 'Pause', errName: 'Please type your name.', errContact: 'Please add a phone or an email.', errEmail: 'Please check the email.', errSend: 'We could not send it. Call us at (385) 266-0675.', errMany: 'We are getting many requests right now. Call us at (385) 266-0675.', sending: 'Sending…' };
 
   const nodes = [...document.querySelectorAll('[data-i18n]')], EN = {};
   nodes.forEach(n => { EN[n.dataset.i18n] = n.textContent; });
@@ -61,20 +69,41 @@
   }));
   apply();
 
-  /* ---- timelapse of the build ---- */
+  /* ---- timelapse of the build, one project at a time ---- */
   {
-    const tl = document.getElementById('tl'), frames = [...tl.querySelectorAll('.tlframe > img')], bars = [...tl.querySelectorAll('.tlbars i')];
-    const chips = [...document.querySelectorAll('[data-step]')], range = document.getElementById('tlrange'), playBtn = document.getElementById('tlplay');
-    const num = document.getElementById('tlnum'), txt = document.getElementById('tltxt'), strip = document.querySelector('.strip');
+    const tl = document.getElementById('tl'), frame = tl.querySelector('.tlframe'), barsBox = tl.querySelector('.tlbars');
+    const range = document.getElementById('tlrange'), playBtn = document.getElementById('tlplay'), desc = document.getElementById('pdesc');
+    const num = document.getElementById('tlnum'), txt = document.getElementById('tltxt'), strip = document.querySelector('.strip'), list = strip.querySelector('ol');
     const reduce = matchMedia('(prefers-reduced-motion: reduce)').matches;
-    let i = 0, timer = null, played = false;
+    /* the deck is written in the page (works without JavaScript); the bathrooms are added here */
+    const deck = [...list.querySelectorAll('button')].map(b => { const im = b.querySelector('img'); return { img: im.getAttribute('src').replace('-sm.jpg', ''), w: +im.width || 800, h: +im.height || 600, k: b.querySelector('span').dataset.i18n }; });
+    const tall = (keys, files) => files.map((f, n) => ({ img: 'img/' + f, w: 600, h: 800, k: keys + (n + 1) }));
+    const P = {
+      deck: { d: 'workP2', tall: false, steps: deck },
+      shower: { d: 'pShowerD', tall: true, steps: tall('s', ['b1-demolicion', 'b2-estructura', 'b3-base', 'b4-impermeable', 'b5-porcelanato', 'b6-mosaico', 'b7-terminado']) },
+      tub: { d: 'pTubD', tall: true, steps: tall('t', ['t01-antes', 't02-plomeria', 't03-paneles', 't04-tina', 't05-porcelanato', 't06-nivelacion', 't07-membrana', 't08-nicho', 't09-piso', 't10-terminado', 't11-luces']) }
+    };
+    let frames = [], chips = [], bars = [], i = 0, timer = null, played = false, cur = 'deck';
+    const build = id => {
+      const p = P[id]; cur = id;
+      frame.querySelectorAll(':scope > img').forEach(x => x.remove());
+      const cap = frame.firstElementChild;
+      p.steps.forEach((s, n) => { const im = document.createElement('img'); im.src = s.img + '-sm.jpg'; im.srcset = `${s.img}-sm.jpg ${s.w}w, ${s.img}.jpg ${s.w * 2}w`; im.sizes = p.tall ? '(max-width:700px) 100vw, 600px' : '(max-width:1120px) 100vw, 1060px'; im.alt = ''; im.width = s.w; im.height = s.h; if (n > 1) im.loading = 'lazy'; frame.insertBefore(im, cap); });
+      frame.classList.toggle('tall', p.tall);
+      barsBox.innerHTML = p.steps.map(() => '<i></i>').join('');
+      list.innerHTML = p.steps.map((s, n) => `<li><button type="button" data-step="${n}" aria-label="${n + 1}"><img src="${s.img}-sm.jpg" alt="" loading="lazy" width="${s.w}" height="${s.h}"><b>${n + 1}</b><span data-i18n="${s.k}">${t(s.k)}</span></button></li>`).join('');
+      frames = [...frame.querySelectorAll(':scope > img')]; bars = [...barsBox.children]; chips = [...list.querySelectorAll('[data-step]')];
+      range.max = frames.length; desc.dataset.i18n = p.d; desc.textContent = t(p.d);
+      document.querySelectorAll('[data-proj]').forEach(b => b.setAttribute('aria-pressed', String(b.dataset.proj === id)));
+      strip.scrollTo({ left: 0 }); show(0);
+    };
     const show = (n, fromUser) => {
       i = Math.max(0, Math.min(frames.length - 1, n));
       frames.forEach((f, k) => f.classList.toggle('on', k === i));
       bars.forEach((b, k) => b.classList.toggle('done', k <= i));
       chips.forEach((c, k) => k === i ? c.setAttribute('aria-current', 'step') : c.removeAttribute('aria-current'));
       range.value = i + 1; num.textContent = `${i + 1} / ${frames.length}`;
-      txt.textContent = chips[i].querySelector('span').textContent;
+      txt.textContent = t(P[cur].steps[i].k);
       range.setAttribute('aria-valuetext', `${i + 1} / ${frames.length}: ${txt.textContent}`);
       if (fromUser) { const c = chips[i]; strip.scrollTo({ left: c.offsetLeft - strip.clientWidth / 2 + c.clientWidth / 2, behavior: reduce ? 'auto' : 'smooth' }); }
       if (frames[i + 1]) frames[i + 1].loading = 'eager';
@@ -88,14 +117,15 @@
     };
     playBtn.addEventListener('click', () => (timer ? stop() : play()));
     range.addEventListener('input', () => { stop(); show(range.value - 1, true); });
-    chips.forEach((c, k) => c.addEventListener('click', () => { stop(); show(k, true); tl.scrollIntoView({ block: 'nearest', behavior: reduce ? 'auto' : 'smooth' }); }));
+    list.addEventListener('click', e => { const c = e.target.closest('[data-step]'); if (!c) return; stop(); show(+c.dataset.step, true); tl.scrollIntoView({ block: 'nearest', behavior: reduce ? 'auto' : 'smooth' }); });
+    document.querySelectorAll('[data-proj]').forEach(b => b.addEventListener('click', () => { if (b.dataset.proj === cur) return; stop(); build(b.dataset.proj); if (!reduce) play(); }));
     tl.addEventListener('keydown', e => { if (e.target === range) return; if (e.key === 'ArrowRight') { stop(); show(i + 1, true); } if (e.key === 'ArrowLeft') { stop(); show(i - 1, true); } });
     if ('IntersectionObserver' in window) new IntersectionObserver(es => es.forEach(e => {
       if (e.isIntersecting && !played && !reduce) play();
       if (!e.isIntersecting && timer) stop();
     }), { threshold: 0.55 }).observe(tl);
-    show(0); label();
-    document.querySelectorAll('[data-lang]').forEach(b => b.addEventListener('click', () => { show(i); label(); }));
+    build('deck'); label();
+    document.querySelectorAll('[data-lang]').forEach(b => b.addEventListener('click', () => { list.querySelectorAll('[data-i18n]').forEach(n => { n.textContent = t(n.dataset.i18n); }); desc.textContent = t(P[cur].d); show(i); label(); }));
   }
 
   /* ---- reveal on scroll (only when motion is welcome) ---- */

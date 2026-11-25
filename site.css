@@ -190,3 +190,13 @@ form [aria-invalid=true]{border-color:var(--bad);box-shadow:0 0 0 2px color-mix(
 .strip span{font-size:14px}
 .strip b{top:8px;left:8px;min-width:26px;height:26px;font-size:13px}
 @media(max-width:600px){.tlcap{left:14px;right:14px;bottom:24px}.tlbars{left:14px;right:14px;bottom:10px}.tlend{display:none}}
+/* project tabs above the timelapse */
+.ptabs{display:flex;flex-wrap:wrap;gap:10px;margin:18px 0 4px}
+.ptabs button{min-height:44px;padding:9px 18px;border-radius:999px;border:1px solid #3a3a3f;background:#17171a;color:#e7e4de;font:600 16px Barlow,sans-serif;cursor:pointer;transition:background .25s,border-color .25s,color .25s}
+.ptabs button:hover{border-color:#6a6a70}
+.ptabs button[aria-pressed="true"]{background:var(--cul);border-color:var(--cul);color:#0d0d0f}
+.ptabs button:focus-visible{outline:3px solid var(--cul);outline-offset:3px}
+/* phone photos are taller than wide: keep them whole instead of cropping them */
+.tlframe.tall{aspect-ratio:3/4;width:min(100%,calc(78vh * .75));max-height:none;margin-inline:auto}
+@media(min-width:900px){.tlframe.tall{aspect-ratio:3/4}}
+.tlframe.tall + .tlctl{max-width:min(100%,calc(78vh * .75));margin-inline:auto}
