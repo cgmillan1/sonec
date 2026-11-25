@@ -202,3 +202,6 @@ form [aria-invalid=true]{border-color:var(--bad);box-shadow:0 0 0 2px color-mix(
 @media(min-width:900px){.tlframe.tall{aspect-ratio:3/4}}
 .tlframe.tall + .tlctl{max-width:min(100%,calc(78vh * .75));margin-inline:auto}
 @media(max-width:700px){.ptabs{flex-wrap:nowrap;overflow-x:auto;scrollbar-width:none;margin-inline:calc(-1 * max(5vw,18px));padding:2px max(5vw,18px) 6px;-webkit-mask-image:linear-gradient(90deg,#000 85%,transparent);mask-image:linear-gradient(90deg,#000 85%,transparent)}.ptabs::-webkit-scrollbar{display:none}.ptabs button{flex:none;white-space:nowrap}}
+/* mobile: larger tap targets in the footer, frame the kitchen in the hero */
+.foot a{display:inline-block;padding:10px 0;min-height:44px}
+@media(max-width:700px){.hero img,.hero video{object-position:40% 55%}}

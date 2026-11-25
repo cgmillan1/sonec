@@ -52,7 +52,7 @@
     pPorch: 'Entrada de composite', pPorchD: 'Una entrada nueva con escalones anchos de composite, marco en ángulo y descanso al nivel de la banqueta.',
     e1: 'Piso de composite con marco', e2: 'Escalones con orillas en ángulo', e3: 'Detalle del descanso', e4: 'Escalones vistos de lado', e5: 'Descanso terminado', e6: 'Terminado: entrada lista',
     pShop: 'Pintura de taller', pShopD: 'Pintamos un taller mecánico con franjas en los colores del negocio: blanco arriba, naranja al centro y azul marino abajo, incluyendo el tapanco de madera.',
-    w1: 'Tapanco y muros antes de pintar', w2: 'Primeras capas de las franjas', w3: 'Muro con ventanas', w4: 'Franjas junto al portón', w5: 'Muro del tapanco en azul marino', w6: 'Franjas terminadas', w7: 'Piso lavado a presión', w8: 'Terminado: taller con los colores del negocio',
+    sh1: 'Tapanco y muros antes de pintar', sh2: 'Primeras capas de las franjas', sh3: 'Muro con ventanas', sh4: 'Franjas junto al portón', sh5: 'Muro del tapanco en azul marino', sh6: 'Franjas terminadas', sh7: 'Piso lavado a presión', sh8: 'Terminado: taller con los colores del negocio',
     pWall: 'Pared nueva en la escalera', pWallD: 'Cerramos un hueco junto a la escalera: estructura, drywall, cinta, compuesto y textura para que la pared nueva se vea igual que el resto de la casa.',
     p1: 'Estructura para la pared nueva', p2: 'Drywall colocado', p3: 'Cinta en las uniones con el techo', p4: 'Primera capa de compuesto', p5: 'Compuesto alisado', p6: 'Terminado: textura igual al resto de la casa',
     pKitchenette: 'Cocineta nueva', pKitchenetteD: 'Una cocineta completa en un sótano: gabinetes grises, cubierta de cuarzo, campana, azulejo negro y conexiones para estufa y fregadero.',
@@ -78,7 +78,7 @@
     pPorchD: 'A new entry with wide composite steps, a mitered picture frame and a landing at sidewalk level.',
     e1: 'Composite decking with border', e2: 'Steps with mitered edges', e3: 'Landing detail', e4: 'Steps from the side', e5: 'Landing finished', e6: 'Finished: entry ready',
     pShopD: 'We painted an auto shop in the business colors: white on top, orange in the middle and navy below, including the wood loft.',
-    w1: 'Loft and walls before paint', w2: 'First coats of the stripes', w3: 'Wall with windows', w4: 'Stripes next to the bay door', w5: 'Loft wall in navy', w6: 'Stripes finished', w7: 'Floor pressure washed', w8: 'Finished: shop in the business colors',
+    sh1: 'Loft and walls before paint', sh2: 'First coats of the stripes', sh3: 'Wall with windows', sh4: 'Stripes next to the bay door', sh5: 'Loft wall in navy', sh6: 'Stripes finished', sh7: 'Floor pressure washed', sh8: 'Finished: shop in the business colors',
     pWallD: 'We closed an opening next to the stairs: framing, drywall, tape, mud and texture so the new wall matches the rest of the house.',
     p1: 'Framing for the new wall', p2: 'Drywall hung', p3: 'Tape on the ceiling joints', p4: 'First coat of mud', p5: 'Mud smoothed out', p6: 'Finished: texture matching the house',
     pKitchenetteD: 'A full basement kitchenette: gray cabinets, quartz countertop, range hood, black tile backsplash and hookups for the range and sink.',
@@ -131,7 +131,7 @@
       basement3: { d: 'pBasement3D', tall: false, steps: wide('v', ['v01-textura', 'v02-pasillo', 'v03-luces', 'v04-piso', 'v05-piso2', 'v06-bano', 'v07-pasillo', 'v08-cocineta', 'v09-recamara', 'v10-terminado']) },
       porch: { d: 'pPorchD', tall: false, steps: wide('e', ['e1-marco', 'e2-escalones', 'e3-detalle', 'e4-orilla', 'e5-descanso', 'e6-terminado']) },
       kitchenette: { d: 'pKitchenetteD', tall: false, steps: wide('g', ['g1-paredes', 'g2-gabinetes', 'g3-cubierta', 'g4-instalacion', 'g5-plantilla', 'g6-azulejo', 'g7-terminado']) },
-      shop: { d: 'pShopD', tall: false, steps: wide('w', ['w1-tapanco', 'w2-franjas', 'w3-ventanas', 'w4-porton', 'w5-muro', 'w6-terminado', 'w7-lavado', 'w8-terminado']) },
+      shop: { d: 'pShopD', tall: false, steps: wide('sh', ['w1-tapanco', 'w2-franjas', 'w3-ventanas', 'w4-porton', 'w5-muro', 'w6-terminado', 'w7-lavado', 'w8-terminado']) },
       wall: { d: 'pWallD', tall: true, steps: tall('p', ['p1-estructura', 'p2-drywall', 'p3-cinta', 'p4-compuesto', 'p5-resane', 'p6-terminado']) },
       floor: { d: 'pFloorD', tall: false, steps: wide('f', ['f1-lijado', 'f2-madera', 'f3-prueba', 'f4-tinte', 'f5-barniz', 'f6-brillo', 'f7-terminado']) }
     };
