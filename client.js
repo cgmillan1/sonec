@@ -1,7 +1,7 @@
 {
 const S = SONEC, t = S.t, esc = S.esc, money = S.money, fdate = S.fdate, $ = q => document.querySelector(q), app = $('#app');
 const tok = new URLSearchParams(location.search).get('p') || '';
-let b = null, contact = {}, state = 'loading', tab = 'overview', mf = 'all', sending = false;
+let b = null, contact = {}, state = 'loading', tab = 'overview', mf = 'all', sending = false, signFor = null, pad = null;
 let myName = ''; try { myName = localStorage.getItem('sonec-name') || ''; } catch (_) {}
 S.setLang(S.L);
 const keepName = v => { myName = v; try { localStorage.setItem('sonec-name', v); } catch (_) {} };
@@ -10,12 +10,12 @@ function shell(inner) { return S.header() + inner; }
 function message(txt, retry) { return shell(`<div class="center"><div class="box">${S.MARK('l')}<p class="sub" style="font-size:18px;margin-top:16px">${esc(txt)}</p>${retry ? `<button class="primary" data-reload>${t('retry')}</button>` : ''}</div></div>`); }
 
 function page() {
-  const p = b.project, c = S.calc(b), C = 2 * Math.PI * 80, pend = b.change_orders.filter(x => x.status === 'pending').length;
+  const p = b.project, c = S.calc(b), C = 2 * Math.PI * 80, pend = b.change_orders.filter(x => x.status === 'pending').length, toSign = (b.documents || []).filter(x => x.status === 'sent' && !x.file && x.snapshot && x.snapshot.items).length;
   const secs = { overview, estimate, pays, changes, materials, steps, updates, messages, ...(b.documents && b.documents.length ? { docs } : {}) };
   return shell(`<section class="hero"><div class="wrap"><div><div class="who">${esc(p.client_name)}</div><h1>${esc(p.title)}</h1>
   <div class="meta"><span>${esc(p.address)}</span>${p.start_date ? `<span>${t('start')}: ${fdate(p.start_date)}</span>` : ''}${p.end_date ? `<span>${t('end')}: ${fdate(p.end_date)}</span>` : ''}</div><span class="chip">${t('st_' + p.status)}</span></div>
   <div class="ring" role="img" aria-label="${c.pct}% ${t('done')}"><svg viewBox="0 0 190 190"><defs><linearGradient id="rg"><stop offset="0" stop-color="#c9682e"/><stop offset="1" stop-color="#f3a26a"/></linearGradient></defs><circle cx="95" cy="95" r="80" fill="none" stroke="#2a2a2e" stroke-width="14"/><circle cx="95" cy="95" r="80" fill="none" stroke="url(#rg)" stroke-width="14" stroke-linecap="round" stroke-dasharray="${C}" stroke-dashoffset="${C * (1 - c.pct / 100)}"/></svg><div><b>${c.pct}%</b><small>${t('done')}</small></div></div></div></section>
-  <nav class="tabs"><div class="wrap">${Object.keys(secs).map(k => `<button data-tab="${k}" class="${tab === k ? 'on' : ''}">${t(k)}${k === 'changes' && pend ? `<span class="badge">${pend}</span>` : ''}</button>`).join('')}</div></nav>
+  <nav class="tabs"><div class="wrap">${Object.keys(secs).map(k => `<button data-tab="${k}" class="${tab === k ? 'on' : ''}">${t(k)}${k === 'changes' && pend ? `<span class="badge">${pend}</span>` : ''}${k === 'docs' && toSign ? `<span class="badge">${toSign}</span>` : ''}</button>`).join('')}</div></nav>
   <main tabindex="-1"><div class="wrap">${secs[tab](c)}</div></main><footer><div>© ${esc(contact.company || 'Grupo Sonec')}</div><button data-reload>${t('refresh')}</button></footer>`);
 }
 function overview(c) {
@@ -44,10 +44,21 @@ function pays(c) {
   ${c.ms.length ? `<div class="card"><h2>${t('schedule')}</h2>${c.ms.map(m => `<div class="ms"><span class="dot ${m.st === 'paid' ? 'y' : ''}">✓</span><div><b>${esc(m.label)}</b><small>${m.st === 'next' && m.covered ? money(m.covered) + ' ' + t('coveredOf') + ' ' + money(m.amount) : ''}</small><span class="pill ${m.st}" style="margin-top:4px">${t('ms_' + m.st)}</span></div><span class="n">${money(m.amount)}</span></div>`).join('')}</div>` : ''}
   <div class="card"><h2>${t('history')}</h2>${b.payments.length ? `<table><thead><tr><th>${t('date')}</th><th>${t('note')}</th><th class="n">${t('amt')}</th></tr></thead><tbody>${b.payments.map(x => `<tr><td style="white-space:nowrap">${fdate(x.paid_on)}</td><td>${esc(x.note)}</td><td class="n">${money(x.amount)}</td></tr>`).join('')}</tbody><tfoot><tr class="tot"><td colspan="2">${t('paidSoFar')}</td><td class="n">${money(c.paid)}</td></tr><tr><td colspan="2"><b>${t('remaining')}</b></td><td class="n"><b>${money(c.bal)}</b></td></tr></tfoot></table>` : `<p class="sub">${t('none')}</p>`}</div>`;
 }
+
+function signForm(kind, id, isDoc) {
+  if (signFor !== kind + ':' + id) return '';
+  return `<form class="signf" id="signf" data-kind="${kind}" data-id="${id}"><p class="sub" style="margin:0">${t('signHint')}${isDoc ? ' ' + t('readFirst') : ''}</p>
+  <label>${t('signName')}<input id="sg-name" autocomplete="name" required maxlength="80" value="${esc(myName)}"></label>
+  <label>${t('signHere')}<canvas id="sg-pad" aria-label="${t('signHere')}"></canvas></label>
+  <div class="acts" style="margin:0"><button class="btn2" type="button" data-sigclear>${t('signClear')}</button></div>
+  <label class="chk"><input type="checkbox" id="sg-ok"> <span>${t('signConsent')}</span></label>
+  <div class="acts" style="margin:0"><button class="primary" type="submit">${kind === 'co' ? t('signApprove') : t('signBtn')}</button><button class="btn2" type="button" data-signcancel>${t('cancel')}</button></div></form>`;
+}
+const signedLine = x => x.signature ? `<small class="sub" style="display:block;margin-top:6px">${t('signedAt')} · ${esc(x.signed_by || x.decided_by || '')} · ${fdate(x.signed_at || x.decided_at)}</small><img class="sigimg" src="${x.signature}" alt="${t('signedAt')}">` : '';
 function changes() {
   return `<div class="card"><h2>${t('changes')}</h2><p class="sub">${t('changesSub')}</p>${b.change_orders.map(x => `<div class="co"><div class="top2"><b>${esc(x.title)}</b><b class="amt">${money(x.amount)}</b></div>
   <small class="sub">${x.kind === 'lab' ? t('labor') : t('materials')} · ${fdate(x.created_at)}</small>${x.details ? `<p style="margin:6px 0 0">${esc(x.details)}</p>` : ''}
-  <div class="acts">${x.status === 'pending' ? `<input data-namefor="${x.id}" value="${esc(myName)}" placeholder="${t('yourName')}" aria-label="${t('yourName')}"><button class="primary" data-decide="${x.id}" data-ok="1">${t('approve')}</button><button class="no" data-decide="${x.id}" data-ok="0">${t('decline')}</button>` : `<span class="pill ${x.status}">${t('co_' + x.status)}</span>${x.decided_by ? `<small class="sub" style="margin:0">${t('by')} ${esc(x.decided_by)} · ${fdate(x.decided_at)}</small>` : ''}`}</div></div>`).join('') || `<p class="sub">${t('none')}</p>`}</div>`;
+  <div class="acts">${x.status === 'pending' ? (signFor === 'co:' + x.id ? '' : `<input data-namefor="${x.id}" value="${esc(myName)}" placeholder="${t('yourName')}" aria-label="${t('yourName')}"><button class="primary" data-signco="${x.id}">${t('approve')}</button><button class="no" data-decide="${x.id}" data-ok="0">${t('decline')}</button>`) : `<span class="pill ${x.status}">${t('co_' + x.status)}</span>${x.decided_by ? `<small class="sub" style="margin:0">${t('by')} ${esc(x.decided_by)} · ${fdate(x.decided_at)}</small>` : ''}`}</div>${signForm('co', x.id, false)}${x.status === 'approved' && x.signature ? `<img class="sigimg" src="${x.signature}" alt="${t('signedAt')}">` : ''}</div>`).join('') || `<p class="sub">${t('none')}</p>`}</div>`;
 }
 function materials(c) {
   const list = b.materials.filter(m => mf === 'all' || (mf === 'b') === !!m.purchased);
@@ -61,7 +72,7 @@ function steps() {
   return `<div class="cols"><div class="card"><h2>${t('taken')}</h2><p class="sub">${d.length}</p><ol class="tl">${d.map(li).join('') || `<p class="sub">${t('none')}</p>`}</ol></div>
   <div class="card"><h2>${t('next')}</h2><p class="sub">${n.length}</p><ol class="tl todo">${n.map((s, i) => li(s, i + 1)).join('') || `<p class="sub">${t('none')}</p>`}</ol></div></div>`;
 }
-function docs() { return `<div class="card"><h2>${t('docs')}</h2><p class="sub">${t('docsClient')}</p>${b.documents.map(x => `<div class="co"><div class="top2"><b>${t('doc_' + x.kind)}${x.file ? ' ✓' : ''}</b><b class="amt">${money(x.total)}</b></div><small class="sub">${fdate(x.created_at)} · ${t('ds_' + x.status)}${x.signed_by ? ' · ' + esc(x.signed_by) : ''}</small><div class="acts">${x.file ? `<a class="primary" style="text-decoration:none;display:inline-flex;align-items:center" href="${esc(API.docUrl(x.file))}" target="_blank" rel="noopener">${t('dlSigned')}</a>` : ''}${x.snapshot && x.snapshot.items ? `<button class="btn2" data-dl="${x.id}">${x.file ? t('dlOriginal') : t('download')}</button>` : ''}</div></div>`).join('')}</div>`; }
+function docs() { return `<div class="card"><h2>${t('docs')}</h2><p class="sub">${t('docsClient')}</p>${b.documents.map(x => `<div class="co"><div class="top2"><b>${t('doc_' + x.kind)}${x.file ? ' ✓' : ''}</b><b class="amt">${money(x.total)}</b></div><small class="sub">${fdate(x.created_at)} · ${t('ds_' + x.status)}${x.signed_by ? ' · ' + esc(x.signed_by) : ''}</small><div class="acts">${x.file ? `<a class="primary" style="text-decoration:none;display:inline-flex;align-items:center" href="${esc(API.docUrl(x.file))}" target="_blank" rel="noopener">${t('dlSigned')}</a>` : ''}${x.snapshot && x.snapshot.items ? `<button class="btn2" data-dl="${x.id}">${x.file ? t('dlOriginal') : t('download')}</button>` : ''}${x.status === 'sent' && !x.file && x.snapshot && x.snapshot.items && signFor !== 'doc:' + x.id ? `<button class="primary" data-signdoc="${x.id}">${t('signT')}</button>` : ''}</div>${signForm('doc', x.id, true)}${signedLine(x)}</div>`).join('')}</div>`; }
 function updates() { return `<div class="card"><h2>${t('updates')}</h2><p class="sub">${t('updSub')}</p>${b.updates.map(u => `<div class="upd" style="margin-bottom:22px"><small>${fdate(u.created_at)}</small>${u.body ? `<p>${esc(u.body)}</p>` : ''}${S.photos(u.photos)}</div>`).join('') || `<p class="sub">${t('none')}</p>`}</div>`; }
 function messages() {
   const who = contact.name || 'Sonec';
@@ -73,7 +84,7 @@ function render() {
   document.title = 'Sonec · ' + (b ? b.project.title : (S.L === 'es' ? 'Mi Proyecto' : 'My Project'));
   const y = scrollY;
   app.innerHTML = state === 'ok' ? page() : state === 'nolink' ? message(t('noLink')) : state === 'missing' ? message(t('notFound')) : state === 'error' ? message(t('error'), true) : message(t('loading'));
-  scrollTo(0, y); const ch = $('#chat'); if (ch) ch.scrollTop = ch.scrollHeight;
+  scrollTo(0, y); const cv = $('#sg-pad'); pad = cv ? S.sigPad(cv) : null; const ch = $('#chat'); if (ch) ch.scrollTop = ch.scrollHeight;
 }
 async function load() {
   if (!tok) { state = 'nolink'; return render(); }
@@ -95,8 +106,12 @@ app.addEventListener('click', async e => {
   else if ('reload' in d) { state = b ? 'ok' : 'loading'; render(); load(); }
   else if ('print' in d) S.printEstimate(b, contact);
   else if (d.doc === 'estimate') { try { await S.docs.download('estimate', S.docs.snapshot(b, contact, S.L)); } catch (er) { console.error(er); if (API.logError) API.logError(er.message || er, er.stack || ''); S.toast(t('error')); } }
-  else if (d.dl) { const x = b.documents.find(y => y.id === d.dl); try { await S.docs.download(x.kind, x.snapshot); } catch (er) { console.error(er); if (API.logError) API.logError(er.message || er, er.stack || ''); S.toast(t('error')); } }
+  else if (d.dl) { const x = b.documents.find(y => y.id === d.dl); try { await S.docs.download(x.kind, S.docs.withSig(x)); } catch (er) { console.error(er); if (API.logError) API.logError(er.message || er, er.stack || ''); S.toast(t('error')); } }
   else if (d.photo) S.lightbox(d.photo);
+  else if (d.signdoc) { signFor = 'doc:' + d.signdoc; render(); $('#signf')?.scrollIntoView({ block: 'center' }); }
+  else if (d.signco) { const inp = document.querySelector(`[data-namefor="${d.signco}"]`); if (inp && inp.value.trim()) keepName(inp.value.trim()); signFor = 'co:' + d.signco; render(); $('#signf')?.scrollIntoView({ block: 'center' }); }
+  else if ('signcancel' in d) { signFor = null; render(); }
+  else if ('sigclear' in d) { pad && pad.clear(); }
   else if (d.decide) {
     const inp = document.querySelector(`[data-namefor="${d.decide}"]`), who = inp.value.trim();
     if (!who) { S.toast(t('nameNeeded')); return inp.focus(); }
@@ -106,7 +121,21 @@ app.addEventListener('click', async e => {
   }
 });
 app.addEventListener('submit', async e => {
-  e.preventDefault(); if (e.target.id !== 'msgf') return;
+  e.preventDefault();
+  if (e.target.id === 'signf') {
+    const f = e.target, who = $('#sg-name').value.trim(), btn = f.querySelector('[type=submit]');
+    if (!who) { S.toast(t('nameNeeded')); return $('#sg-name').focus(); }
+    if (!pad || pad.empty()) { S.toast(t('signNeed')); return; }
+    if (!$('#sg-ok').checked) { S.toast(t('consentNeed')); return $('#sg-ok').focus(); }
+    if (btn.disabled) return; btn.disabled = true; keepName(who);
+    try {
+      const sig = pad.data();
+      if (f.dataset.kind === 'doc') await API.clientSign(tok, f.dataset.id, who, sig); else await API.clientDecideSigned(tok, f.dataset.id, true, who, sig);
+      signFor = null; await load(); S.toast(f.dataset.kind === 'doc' ? t('signedOk') : t('co_approved'));
+    } catch (er) { console.error(er); if (API.logError) API.logError(er.message || er, er.stack || ''); btn.disabled = false; S.toast(t('error')); }
+    return;
+  }
+  if (e.target.id !== 'msgf') return;
   const who = $('#mn').value.trim(), msg = $('#mb').value.trim();
   if (!who) { S.toast(t('nameNeeded')); return $('#mn').focus(); }
   if (!msg) return $('#mb').focus();
@@ -115,7 +144,7 @@ app.addEventListener('submit', async e => {
   try { await API.clientComment(tok, who, msg); await load(); } catch (er) { console.error(er); if (API.logError) API.logError(er.message || er, er.stack || ''); failed = true; S.toast(/too many/i.test(er.message || '') ? t('tooMany') : t('error')); }
   sending = false; render(); if (failed && $('#mb')) $('#mb').value = msg;
 });
-document.addEventListener('visibilitychange', () => { if (document.visibilityState === 'visible' && state === 'ok' && !document.activeElement?.matches('input,textarea')) load(); });
+document.addEventListener('visibilitychange', () => { if (document.visibilityState === 'visible' && state === 'ok' && !signFor && !document.activeElement?.matches('input,textarea')) load(); });
 
 render(); load(); if (tok) S.splash();
 }

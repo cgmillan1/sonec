@@ -210,3 +210,25 @@ S.printEstimate = function (b, contact) {
   setTimeout(() => { try { print(); } catch (_) { done(); } }, 60);
 };
 })();
+
+Object.assign(SONEC.T.es, { visitBtn: 'Agendar visita', visitChange: 'Cambiar visita', visitWhen: 'Día y hora de la visita', visitNote: 'Nota', visitNotePh: 'Ej. Traer muestras de piso', visitSave: 'Guardar visita', visitDel: 'Quitar visita', visitOn: 'Visita:', visitCal: 'Agregar a Google Calendar', visitTell: 'Avisar al cliente', visitSaved: 'Visita guardada. Agrégala a tu calendario y avísale al cliente.', visitRemoved: 'Visita quitada', staleMsg: 'Lleva {d} días sin respuesta.', followBtn: 'Mandar seguimiento', followDone: 'Seguimiento marcado. Te volvemos a recordar en 3 días si no contesta.',
+  signT: 'Firmar', signHint: 'Escribe tu nombre completo y firma con el dedo o el mouse.', signName: 'Nombre completo', signHere: 'Firma aquí', signClear: 'Borrar firma', signConsent: 'Acepto firmar este documento de forma electrónica y que mi firma electrónica vale igual que una firma en papel.', signBtn: 'Firmar documento', signApprove: 'Firmar y aprobar', signNeed: 'Dibuja tu firma en el recuadro.', consentNeed: 'Marca la casilla para aceptar la firma electrónica.', signedOk: 'Documento firmado. Gracias.', signedAt: 'Firmado electrónicamente', readFirst: 'Descarga y revisa el documento antes de firmar.' });
+Object.assign(SONEC.T.en, { visitBtn: 'Schedule visit', visitChange: 'Change visit', visitWhen: 'Visit day and time', visitNote: 'Note', visitNotePh: 'E.g. Bring flooring samples', visitSave: 'Save visit', visitDel: 'Remove visit', visitOn: 'Visit:', visitCal: 'Add to Google Calendar', visitTell: 'Tell the client', visitSaved: 'Visit saved. Add it to your calendar and let the client know.', visitRemoved: 'Visit removed', staleMsg: 'No reply for {d} days.', followBtn: 'Send follow-up', followDone: 'Follow-up marked. We will remind you again in 3 days if they do not reply.',
+  signT: 'Sign', signHint: 'Type your full name and sign with your finger or mouse.', signName: 'Full name', signHere: 'Sign here', signClear: 'Clear signature', signConsent: 'I agree to sign this document electronically and that my electronic signature is as valid as a signature on paper.', signBtn: 'Sign document', signApprove: 'Sign and approve', signNeed: 'Draw your signature in the box.', consentNeed: 'Check the box to accept the electronic signature.', signedOk: 'Document signed. Thank you.', signedAt: 'Signed electronically', readFirst: 'Download and review the document before signing.' });
+/* signature pad: finger, pen or mouse on a canvas; returns a small PNG */
+SONEC.sigPad = function (cv) {
+  const ctx = cv.getContext('2d'), r = window.devicePixelRatio || 1;
+  const fit = () => { const w = cv.clientWidth, h = cv.clientHeight; cv.width = w * r; cv.height = h * r; ctx.setTransform(r, 0, 0, r, 0, 0); ctx.lineWidth = 2.4; ctx.lineCap = ctx.lineJoin = 'round'; ctx.strokeStyle = '#17171a'; };
+  fit();
+  let drawing = false, last = null, ink = 0;
+  const pos = e => { const b = cv.getBoundingClientRect(); return [e.clientX - b.left, e.clientY - b.top]; };
+  cv.addEventListener('pointerdown', e => { e.preventDefault(); cv.setPointerCapture(e.pointerId); drawing = true; last = pos(e); ctx.beginPath(); ctx.arc(last[0], last[1], 1.1, 0, 7); ctx.fill(); });
+  cv.addEventListener('pointermove', e => { if (!drawing) return; e.preventDefault(); const p = pos(e); ctx.beginPath(); ctx.moveTo(last[0], last[1]); ctx.lineTo(p[0], p[1]); ctx.stroke(); ink += Math.hypot(p[0] - last[0], p[1] - last[1]); last = p; });
+  const end = () => { drawing = false; };
+  cv.addEventListener('pointerup', end); cv.addEventListener('pointercancel', end);
+  return {
+    empty: () => ink < 25,
+    clear() { ctx.clearRect(0, 0, cv.width, cv.height); ink = 0; },
+    data() { const o = document.createElement('canvas'); o.width = 600; o.height = Math.round(600 * cv.height / cv.width); const c = o.getContext('2d'); c.drawImage(cv, 0, 0, o.width, o.height); return o.toDataURL('image/png'); }
+  };
+};

@@ -177,9 +177,9 @@ begin
     'updates', coalesce((select json_agg(u order by u.created_at desc) from (select id, body, photos, created_at from updates where project_id = p.id) u), '[]'),
     'payments', coalesce((select json_agg(x order by x.paid_on) from (select id, paid_on, note, amount from payments where project_id = p.id) x), '[]'),
     'milestones', coalesce((select json_agg(x order by x.sort) from (select id, label, amount, sort from milestones where project_id = p.id) x), '[]'),
-    'change_orders', coalesce((select json_agg(x order by x.created_at desc) from (select id, title, details, kind, amount, status, decided_by, decided_at, created_at from change_orders where project_id = p.id and status <> 'draft') x), '[]'),
+    'change_orders', coalesce((select json_agg(x order by x.created_at desc) from (select id, title, details, kind, amount, status, decided_by, decided_at, created_at, signature from change_orders where project_id = p.id and status <> 'draft') x), '[]'),
     'comments', coalesce((select json_agg(x order by x.created_at) from (select id, author, name, body, created_at from comments where project_id = p.id) x), '[]'),
-    'documents', coalesce((select json_agg(x order by x.created_at desc) from (select id, kind, lang, snapshot, total, status, signed_by, signed_on, file, created_at from documents where project_id = p.id and status in ('sent','signed')) x), '[]')
+    'documents', coalesce((select json_agg(x order by x.created_at desc) from (select id, kind, lang, snapshot, total, status, signed_by, signed_on, signed_at, signature, file, created_at from documents where project_id = p.id and status in ('sent','signed')) x), '[]')
   ) into r;
   return r;
 end $$;
@@ -489,9 +489,9 @@ begin
     'updates', coalesce((select json_agg(u order by u.created_at desc) from (select id, body, photos, created_at from updates where project_id = p.id) u), '[]'),
     'payments', coalesce((select json_agg(x order by x.paid_on) from (select id, paid_on, note, amount from payments where project_id = p.id) x), '[]'),
     'milestones', coalesce((select json_agg(x order by x.sort) from (select id, label, amount, sort from milestones where project_id = p.id) x), '[]'),
-    'change_orders', coalesce((select json_agg(x order by x.created_at desc) from (select id, title, details, kind, amount, status, decided_by, decided_at, created_at from change_orders where project_id = p.id and status <> 'draft') x), '[]'),
+    'change_orders', coalesce((select json_agg(x order by x.created_at desc) from (select id, title, details, kind, amount, status, decided_by, decided_at, created_at, signature from change_orders where project_id = p.id and status <> 'draft') x), '[]'),
     'comments', coalesce((select json_agg(x order by x.created_at) from (select id, author, name, body, created_at from comments where project_id = p.id) x), '[]'),
-    'documents', coalesce((select json_agg(x order by x.created_at desc) from (select id, kind, lang, snapshot, total, status, signed_by, signed_on, file, created_at from documents where project_id = p.id and status in ('sent','signed')) x), '[]')
+    'documents', coalesce((select json_agg(x order by x.created_at desc) from (select id, kind, lang, snapshot, total, status, signed_by, signed_on, signed_at, signature, file, created_at from documents where project_id = p.id and status in ('sent','signed')) x), '[]')
   ) into r;
   return r;
 end $$;
@@ -540,3 +540,68 @@ update public.settings set notify_email = 'sonecgerencia@gmail.com' where coales
 
 grant select, update (notified_at) on public.leads to service_role;
 grant select (owner, notify_email) on public.settings to service_role;
+
+-- ---------- Versión 6: visitas, seguimiento y firma electrónica -------
+alter table public.leads add column if not exists visit_at timestamptz;
+alter table public.leads add column if not exists visit_note text default '';
+alter table public.leads add column if not exists followed_up_at timestamptz;   -- Victor mandó seguimiento
+alter table public.leads add column if not exists reminded_at timestamptz;      -- el aviso diario lo recordó
+alter table public.leads drop constraint if exists leads_visit_note_len;
+alter table public.leads add constraint leads_visit_note_len check (char_length(coalesce(visit_note,'')) <= 500);
+create index if not exists leads_visit_idx on public.leads (owner, visit_at) where visit_at is not null;
+alter table public.settings add column if not exists digest_sent_at timestamptz;
+
+alter table public.documents add column if not exists signature text;
+alter table public.documents add column if not exists signed_at timestamptz;
+alter table public.change_orders add column if not exists signature text;
+alter table public.documents drop constraint if exists documents_sig_len;
+alter table public.documents add constraint documents_sig_len check (signature is null or (char_length(signature) <= 150000 and signature like 'data:image/png;base64,%'));
+alter table public.change_orders drop constraint if exists change_orders_sig_len;
+alter table public.change_orders add constraint change_orders_sig_len check (signature is null or (char_length(signature) <= 150000 and signature like 'data:image/png;base64,%'));
+
+-- el cliente firma un documento Enviado con su enlace privado; si es estimado o contrato, el proyecto pasa a Estimado aceptado
+create or replace function public.client_sign(tok text, doc uuid, who text, sig text)
+returns void language plpgsql security definer set search_path = public as $$
+declare pid uuid; k text;
+begin
+  if coalesce(trim(who), '') = '' or sig is null or sig not like 'data:image/png;base64,%' or char_length(sig) > 150000 then
+    raise exception 'invalid';
+  end if;
+  select d.project_id, d.kind into pid, k from documents d join projects p on p.id = d.project_id
+   where d.id = doc and p.client_token = tok and d.status = 'sent' and d.file is null;
+  if pid is null then raise exception 'invalid'; end if;
+  update documents set status = 'signed', signed_by = left(trim(who), 80), signed_on = (now() at time zone 'America/Denver')::date,
+         signed_at = now(), signature = sig
+   where id = doc;
+  if k in ('estimate','contract') then
+    update projects set status = 'estimate_accepted' where id = pid and status = 'estimate_sent';
+  end if;
+end $$;
+
+-- aprobar un cambio pide firma; rechazarlo solo el nombre
+create or replace function public.client_decide_signed(tok text, co uuid, approve boolean, who text, sig text)
+returns void language plpgsql security definer set search_path = public as $$
+begin
+  if coalesce(trim(who), '') = '' then raise exception 'invalid'; end if;
+  if approve and (sig is null or sig not like 'data:image/png;base64,%' or char_length(sig) > 150000) then raise exception 'invalid'; end if;
+  update change_orders c set status = case when approve then 'approved' else 'declined' end,
+         decided_by = left(trim(who), 80), decided_at = now(), signature = case when approve then sig end
+  from projects p
+  where c.id = co and c.project_id = p.id and p.client_token = tok and c.status = 'pending';
+  if not found then raise exception 'invalid'; end if;
+end $$;
+revoke all on function public.client_sign(text, uuid, text, text) from public;
+revoke all on function public.client_decide_signed(text, uuid, boolean, text, text) from public;
+grant execute on function public.client_sign(text, uuid, text, text) to anon, authenticated;
+grant execute on function public.client_decide_signed(text, uuid, boolean, text, text) to anon, authenticated;
+-- client_project (arriba) ahora también devuelve signature y signed_at de documentos y cambios.
+
+grant select (id, owner, name, phone, email, city, service, message, lang, status, created_at, visit_at, visit_note, followed_up_at, reminded_at) on public.leads to service_role;
+grant update (reminded_at) on public.leads to service_role;
+grant select (owner, notify_email, company, contact_name, phone, digest_sent_at) on public.settings to service_role;
+grant update (digest_sent_at) on public.settings to service_role;
+
+-- aviso diario (función lead-followup) a las 7 am de Utah; corre a dos horas por el horario de verano y solo manda una vez
+create extension if not exists pg_cron;
+select cron.schedule('sonec-lead-followup-a', '5 13 * * *', $$select net.http_post(url := 'https://zeavzcpsyvcoeghknomm.supabase.co/functions/v1/lead-followup', body := '{}'::jsonb, headers := '{"Content-Type":"application/json"}'::jsonb, timeout_milliseconds := 20000)$$);
+select cron.schedule('sonec-lead-followup-b', '5 14 * * *', $$select net.http_post(url := 'https://zeavzcpsyvcoeghknomm.supabase.co/functions/v1/lead-followup', body := '{}'::jsonb, headers := '{"Content-Type":"application/json"}'::jsonb, timeout_milliseconds := 20000)$$);

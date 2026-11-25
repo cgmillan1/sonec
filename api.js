@@ -52,6 +52,8 @@
     async clientProject(tok) { return ok(await sb.rpc('client_project', { tok })); },
     async clientComment(tok, who, msg) { ok(await sb.rpc('client_comment', { tok, who, msg })); },
     async clientDecide(tok, co, approve, who) { ok(await sb.rpc('client_decide', { tok, co, approve, who })); },
+    async clientDecideSigned(tok, co, approve, who, sig) { ok(await sb.rpc('client_decide_signed', { tok, co, approve, who, sig })); },
+    async clientSign(tok, doc, who, sig) { ok(await sb.rpc('client_sign', { tok, doc, who, sig })); },
     /* errors go to a private table Victor and Cristian can read; no personal data, no secret link */
     logError(msg, src) {
       if (!sb) return;

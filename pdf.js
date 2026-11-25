@@ -13,7 +13,7 @@ es: {
   start: 'Inicio estimado', end: 'Terminación estimada', blank: '________________',
   estNote: 'Este estimado se basa en las cantidades y precios conocidos a la fecha. El monto final puede cambiar según los materiales realmente necesarios, permisos y requisitos de la ciudad, como se explica en el contrato.',
   validity: 'Estimado válido por 30 días a partir de la fecha.',
-  sigContractor: 'Firma del contratista', sigClient: 'Firma del cliente', name: 'Nombre', signDate: 'Fecha',
+  eSigned: 'Firmado electrónicamente por', sigContractor: 'Firma del contratista', sigClient: 'Firma del cliente', name: 'Nombre', signDate: 'Fecha',
   original: 'Monto original del contrato', adjustments: 'Ajustes al monto del contrato', adjTotal: 'Total de ajustes', final: 'Monto final del contrato',
   added: 'Agregado', removed: 'Quitado', changed: 'Cambio de cantidad o precio', co: 'Orden de cambio aprobada', taxAdj: 'Ajuste de impuesto sobre materiales',
   noAdj: 'Sin ajustes: el monto final es igual al del contrato.', payments: 'Pagos recibidos', totalPaid: 'Total pagado',
@@ -36,7 +36,7 @@ en: {
   start: 'Estimated start', end: 'Estimated completion', blank: '________________',
   estNote: 'This estimate is based on the quantities and prices known as of its date. The final amount may change based on the materials actually needed, permits and city requirements, as explained in the contract.',
   validity: 'Estimate valid for 30 days from its date.',
-  sigContractor: 'Contractor signature', sigClient: 'Client signature', name: 'Name', signDate: 'Date',
+  eSigned: 'Signed electronically by', sigContractor: 'Contractor signature', sigClient: 'Client signature', name: 'Name', signDate: 'Date',
   original: 'Original contract amount', adjustments: 'Adjustments to the contract amount', adjTotal: 'Total adjustments', final: 'Final contract amount',
   added: 'Added', removed: 'Removed', changed: 'Quantity or price change', co: 'Approved change order', taxAdj: 'Tax adjustment on materials',
   noAdj: 'No adjustments: the final amount equals the contract amount.', payments: 'Payments received', totalPaid: 'Total paid',
@@ -220,15 +220,18 @@ function Doc(title, sub, snap) {
       y += 6;
     },
     sign(anchor) {
-      api.need(130); y += 30;
+      api.need(150); y += snap.signed ? 60 : 30;
       const w = (CW - 40) / 2;
       [[T.sigContractor, snap.contact.legal_name || snap.contact.company, '/sn1/', '/dt1/'], [T.sigClient, snap.project.client_name, '/sn2/', '/dt2/']].forEach(([lab, nm, a1, a2], i) => {
         const x = MX + i * (w + 40);
         if (anchor) { d.setTextColor(255, 255, 255); d.setFontSize(6); d.text(a1, x + 4, y - 6); d.text(a2, x + w - 70, y + 40); }
         d.setDrawColor(...INK); d.setLineWidth(0.8); d.line(x, y, x + w, y);
         d.setFont('helvetica', 'bold'); d.setFontSize(9); d.setTextColor(...MUTE); d.text(lab, x, y + 13);
-        d.setFont('helvetica', 'normal'); d.setTextColor(...INK); d.text(`${T.name}: ${nm || T.blank}`, x, y + 28);
-        d.text(`${T.signDate}: ________________`, x, y + 43);
+        d.setFont('helvetica', 'normal'); d.setTextColor(...INK); d.text(`${T.name}: ${(i === 1 && snap.signed && snap.signed.by) || nm || T.blank}`, x, y + 28);
+        const sg = i === 1 && snap.signed;
+        if (sg && sg.img) { try { d.addImage(sg.img, 'PNG', x + 4, y - 52, 150, 48); } catch (_) {} }
+        d.text(`${T.signDate}: ${sg && sg.at ? new Date(sg.at).toLocaleDateString(snap.lang === 'en' ? 'en-US' : 'es-MX') : '________________'}`, x, y + 43);
+        if (sg) { d.setFontSize(7.5); d.setTextColor(...MUTE); d.text(`${T.eSigned}: ${sg.by || ''} · ${new Date(sg.at).toISOString().replace('T', ' ').slice(0, 16)} UTC`, x, y + 56); d.setFontSize(9); d.setTextColor(...INK); }
       });
       y += 60;
     },
@@ -358,6 +361,7 @@ async function build(kind, snap) { return kind === 'invoice' ? invoicePdf(snap) 
 
 S.docs = {
   snapshot, adjustments, build,
+  withSig(x) { return x.signature ? Object.assign({}, x.snapshot, { signed: { by: x.signed_by, at: x.signed_at, img: x.signature } }) : x.snapshot; },
   /* completion snapshot = today's state + what changed since the latest contract */
   completionSnapshot(b, contact, lang, contract) {
     const cur = snapshot(b, contact, lang);

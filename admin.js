@@ -80,16 +80,52 @@ function newForm() {
   <div class="npbar"><button class="btn2" type="button" data-cancelnew>${t('cancel')}</button><button class="primary" type="submit">${t('create')}</button></div>
   </form>`;
 }
+let visitFor = null;
+const TZ = 'America/Denver';
+const firstName = n => String(n || '').trim().split(/\s+/)[0] || '';
+const leadSvc = l => { const k = 'svc_' + l.service; const v = t(k); return v === k ? (l.service || '') : v; };
+const fdt = (iso, lang) => new Date(iso).toLocaleString(lang === 'en' ? 'en-US' : 'es-MX', { weekday: 'long', day: 'numeric', month: 'long', hour: 'numeric', minute: '2-digit', timeZone: TZ });
+const localInput = iso => { const d = iso ? new Date(iso) : new Date(Date.now() + 864e5); if (!iso) d.setHours(10, 0, 0, 0); const p = n => String(n).padStart(2, '0'); return `${d.getFullYear()}-${p(d.getMonth() + 1)}-${p(d.getDate())}T${p(d.getHours())}:${p(d.getMinutes())}`; };
+const daysSince = l => Math.floor((Date.now() - Date.parse(l.followed_up_at || l.created_at)) / 864e5);
+const isStale = l => daysSince(l) >= 3 && !(l.visit_at && Date.parse(l.visit_at) > Date.now() - 864e5);
+function gcal(l) {
+  const z = d => d.toISOString().replace(/[-:]/g, '').replace(/\.\d{3}/, '');
+  const st = new Date(l.visit_at), en = new Date(st.getTime() + 3600e3);
+  const det = [l.phone && 'Tel: ' + l.phone, l.email && 'Email: ' + l.email, leadSvc(l), l.message, l.visit_note, location.href.split('#')[0]].filter(Boolean).join('\n');
+  const q = new URLSearchParams({ action: 'TEMPLATE', text: (S.L === 'en' ? 'Estimate visit: ' : 'Visita de estimado: ') + l.name, dates: z(st) + '/' + z(en), details: det, location: l.city || '', ctz: TZ });
+  if (/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(l.email || '')) q.set('add', l.email);
+  return 'https://calendar.google.com/calendar/render?' + q.toString();
+}
+function leadText(l, kind) {
+  const en = l.lang === 'en', n = firstName(l.name), svc = leadSvc(l).toLowerCase(), me = firstName(settings.contact_name) || 'Victor', co = settings.company || 'Grupo Sonec';
+  if (kind === 'visit') return en
+    ? `Hi ${n}, this is ${me} from ${co}. Confirming our visit for your estimate on ${fdt(l.visit_at, 'en')}. If anything changes, just reply to this message.`
+    : `Hola ${n}, soy ${me} de ${co}. Le confirmo la visita para su estimado el ${fdt(l.visit_at, 'es')}. Si algo cambia, me avisa por este medio.`;
+  return en
+    ? `Hi ${n}, this is ${me} from ${co}. Following up on the ${svc || 'project'} estimate you asked for. Would you like us to come by and see the project this week?`
+    : `Hola ${n}, soy ${me} de ${co}. Le escribo por el estimado${svc ? ' de ' + svc : ''} que nos pidió. ¿Le gustaría que pasemos a ver el proyecto esta semana?`;
+}
+function contactLead(l, text) {
+  const d = (l.phone || '').replace(/\D/g, ''), wa = d.length === 10 ? '1' + d : d;
+  if (wa) window.open(`https://wa.me/${wa}?text=${encodeURIComponent(text)}`, '_blank', 'noopener');
+  else if (l.email) location.href = `mailto:${l.email}?subject=${encodeURIComponent(settings.company || 'Grupo Sonec')}&body=${encodeURIComponent(text)}`;
+}
 function leadsCard() {
   const open = leads.filter(l => l.status === 'new' || l.status === 'contacted');
   if (!open.length) return '';
+  const now = Date.now(), rank = l => l.visit_at && Date.parse(l.visit_at) > now - 864e5 ? 0 : isStale(l) ? 1 : 2;
+  open.sort((x, y) => rank(x) - rank(y) || (rank(x) === 0 ? Date.parse(x.visit_at) - Date.parse(y.visit_at) : Date.parse(y.created_at) - Date.parse(x.created_at)));
   return `<div class="card"><h2>${t('leads')} <span class="badge">${open.filter(l => l.status === 'new').length || ''}</span></h2><p class="sub">${t('leadsSub')}</p>
-  ${open.map(l => { const tel = (l.phone || '').replace(/[^\d+]/g, ''), wa = tel.replace(/\D/g, '');
-    return `<div class="co"><div class="top2"><b>${esc(l.name)}</b><span class="pill ${l.status === 'new' ? 'pending' : 'paid'}">${t('lead_' + l.status)}</span></div>
-    <small class="sub">${fdate(l.created_at)}${l.service ? ' · ' + esc(l.service) : ''}${l.city ? ' · ' + esc(l.city) : ''} · ${l.lang === 'en' ? 'English' : 'Español'}</small>
+  ${open.map(l => { const tel = (l.phone || '').replace(/[^\d+]/g, ''), wa = tel.replace(/\D/g, ''), stale = isStale(l), up = l.visit_at && Date.parse(l.visit_at) > now - 864e5;
+    return `<div class="co${stale ? ' stale' : ''}"><div class="top2"><b>${esc(l.name)}</b><span class="pill ${l.status === 'new' ? 'pending' : 'paid'}">${t('lead_' + l.status)}</span></div>
+    <small class="sub">${fdate(l.created_at)}${l.service ? ' · ' + esc(leadSvc(l)) : ''}${l.city ? ' · ' + esc(l.city) : ''} · ${l.lang === 'en' ? 'English' : 'Español'}</small>
+    ${up ? `<p class="visit"><b>${t('visitOn')}</b> ${esc(fdt(l.visit_at, S.L))}${l.visit_note ? ' · ' + esc(l.visit_note) : ''}</p>` : ''}
+    ${stale ? `<p class="staleMsg">${t('staleMsg').replace('{d}', daysSince(l))}</p>` : ''}
     ${l.message ? `<p style="margin:6px 0 0;white-space:pre-wrap">${esc(l.message)}</p>` : ''}
-    <div class="acts">${l.phone ? `<a class="btn2" href="tel:${esc(tel)}">${esc(l.phone)}</a><a class="btn2" href="https://wa.me/${wa.length === 10 ? '1' + wa : wa}" target="_blank" rel="noopener">WhatsApp</a>` : ''}${l.email ? `<a class="btn2" href="mailto:${esc(l.email)}">${esc(l.email)}</a>` : ''}
-    <button class="primary" data-leadp="${l.id}">${t('leadToProject')}</button>${l.status === 'new' ? `<button class="btn2" data-leadst="${l.id}:contacted">${t('lead_contacted')}</button>` : ''}<button class="btn2" data-leadst="${l.id}:archived">${t('archive')}</button></div></div>`; }).join('')}</div>`;
+    ${visitFor === l.id ? `<form id="visitf" class="visitf" data-id="${l.id}"><label>${t('visitWhen')}<input id="vf-at" type="datetime-local" required value="${localInput(l.visit_at)}"></label><label>${t('visitNote')} <small>(${t('optional')})</small><input id="vf-note" maxlength="200" value="${esc(l.visit_note || '')}" placeholder="${t('visitNotePh')}"></label><div class="acts"><button class="primary" type="submit">${t('visitSave')}</button><button class="btn2" type="button" data-visitcancel>${t('cancel')}</button>${l.visit_at ? `<button class="btn2" type="button" data-visitdel="${l.id}">${t('visitDel')}</button>` : ''}</div></form>` : ''}
+    <div class="acts">${stale && (wa || l.email) ? `<button class="primary" data-follow="${l.id}">${t('followBtn')}</button>` : ''}${up ? `<a class="btn2" href="${esc(gcal(l))}" target="_blank" rel="noopener">${t('visitCal')}</a>${wa || l.email ? `<button class="btn2" data-visitmsg="${l.id}">${t('visitTell')}</button>` : ''}` : ''}<button class="btn2" data-visit="${l.id}">${up ? t('visitChange') : t('visitBtn')}</button>
+    ${l.phone ? `<a class="btn2" href="tel:${esc(tel)}">${esc(l.phone)}</a><a class="btn2" href="https://wa.me/${wa.length === 10 ? '1' + wa : wa}" target="_blank" rel="noopener">WhatsApp</a>` : ''}${l.email ? `<a class="btn2" href="mailto:${esc(l.email)}">${esc(l.email)}</a>` : ''}
+    <button class="btn2" data-leadp="${l.id}">${t('leadToProject')}</button>${l.status === 'new' ? `<button class="btn2" data-leadst="${l.id}:contacted">${t('lead_contacted')}</button>` : ''}<button class="btn2" data-leadst="${l.id}:archived">${t('archive')}</button></div></div>`; }).join('')}</div>`;
 }
 function project() {
   const u = unseen(cur), p = cur.project;
@@ -159,7 +195,7 @@ function cChanges() {
   return `<div class="card"><h2>${t('changes')}</h2><p class="sub">${t('coHint')}</p>
   ${cur.change_orders.slice().sort((a, b) => String(b.created_at).localeCompare(String(a.created_at))).map(co => `<div class="co"><div class="row r-co" style="border:0;padding:0">${fld('change_orders', co, 'title', 'text', 'tt')}${sel('change_orders', co, 'kind', kinds(), 'tp')}${fld('change_orders', co, 'amount', 'number', 'am')}${sel('change_orders', co, 'status', sts, 'stsel')}${del('change_orders', co.id)}
   <textarea class="det" rows="2" data-t="change_orders" data-id="${co.id}" data-f="details" aria-label="${t('f_details')}" style="display:block;width:100%;padding:10px 12px;border:1px solid var(--line);border-radius:10px;background:var(--bg);font-size:16px">${esc(co.details)}</textarea></div>
-  <div class="acts">${co.status === 'draft' ? `<button class="primary" data-sendco="${co.id}">${t('sendClient')}</button>` : `<span class="pill ${co.status}">${t('co_' + co.status)}</span>`}${co.decided_by ? `<small class="sub" style="margin:0">${t('by')} ${esc(co.decided_by)} · ${fdate(co.decided_at)}</small>` : ''}</div></div>`).join('') || `<p class="sub">${t('none')}</p>`}
+  <div class="acts">${co.status === 'draft' ? `<button class="primary" data-sendco="${co.id}">${t('sendClient')}</button>` : `<span class="pill ${co.status}">${t('co_' + co.status)}</span>`}${co.decided_by ? `<small class="sub" style="margin:0">${t('by')} ${esc(co.decided_by)} · ${fdate(co.decided_at)}</small>` : ''}</div>${co.signature ? `<img class="sigimg" src="${co.signature}" alt="">` : ''}</div>`).join('') || `<p class="sub">${t('none')}</p>`}
   <button class="add" data-add="change_orders">${t('addCo')}</button></div>`;
 }
 let pending = [];
@@ -200,6 +236,7 @@ function cDocs() {
     <small class="sub">${fdate(x.created_at)}</small>
     <div class="acts">${sel('documents', x, 'status', ['draft', 'sent', 'signed', 'void'].map(s => [s, t('ds_' + s)]), 'stsel')}${x.file ? `<button class="primary" data-dlsigned="${x.id}">${t('dlSigned')}</button>` : ''}${x.snapshot && x.snapshot.items ? `<button class="btn2" data-dl="${x.id}">${x.file ? t('dlOriginal') : t('download')}</button>` : ''}<button class="btn2" data-upsigned="${x.id}">${t('upSigned')}</button>${x.status === 'draft' || (x.file && !(x.snapshot && x.snapshot.items)) ? del('documents', x.id) : ''}</div>
     ${x.file ? `<small class="sub" style="color:var(--ok);font-weight:600">✓ ${t('signedFile')}</small>` : ''}
+    ${x.signature ? `<small class="sub" style="color:var(--ok);font-weight:600">✓ ${t('signedAt')} · ${esc(x.signed_by || '')} · ${fdate(x.signed_at)}</small><img class="sigimg" src="${x.signature}" alt="">` : ''}
     ${x.status === 'signed' ? `<div class="grid2" style="margin-top:10px"><label>${t('signedBy')}${fld('documents', x, 'signed_by')}</label><label>${t('signedOn')}${fld('documents', x, 'signed_on', 'date')}</label></div>` : ''}</div>`).join('') || `<p class="sub">${t('none')}</p>`}</div>
   <div class="card"><h2>${t('contractData')}</h2><p class="sub">${t('contractDataSub')}</p><div class="grid2" style="margin-top:12px">
   <label>${t('legalName')}${fld('settings', settings, 'legal_name')}</label><label>${t('licenseNo')}${fld('settings', settings, 'license_no')}</label>
@@ -366,6 +403,12 @@ app.addEventListener('submit', async e => {
       const row = await API.insert('payments', { project_id: cur.project.id, amount, paid_on: $('#xp-date').value || S.today(), note: $('#xp-note').value.trim() });
       cur.payments.push(row); render(); S.toast(t('payOk'), async () => { await API.remove('payments', row.id); cur.payments = cur.payments.filter(x => x.id !== row.id); render(); });
     }
+    if (id === 'visitf') {
+      const l = leads.find(x => x.id === e.target.dataset.id), v = $('#vf-at').value; if (!v) return $('#vf-at').focus();
+      const at = new Date(v); if (isNaN(at)) return $('#vf-at').focus();
+      Object.assign(l, await API.update('leads', l.id, { visit_at: at.toISOString(), visit_note: $('#vf-note').value.trim().slice(0, 200), status: l.status === 'new' ? 'contacted' : l.status }));
+      visitFor = null; render(); S.toast(t('visitSaved'));
+    }
     if (id === 'msgf') {
       const body = $('#rp').value.trim(); if (!body) return;
       cur.comments.push(await API.insert('comments', { project_id: cur.project.id, author: 'contractor', name: settings.contact_name || '', body, seen: true })); render(); $('#rp')?.focus();
@@ -382,6 +425,14 @@ app.addEventListener('click', async e => {
     if (d.lang) { S.setLang(d.lang); render(); }
     else if ('logout' in d) { await API.signOut(); B = []; cur = null; view = 'login'; render(); }
     else if ('hideinstall' in d) { try { localStorage.setItem('sonec-noinstall', '1'); } catch (_) {} render(); }
+    else if (d.visit) { visitFor = d.visit; render(); $('#vf-at')?.focus(); }
+    else if ('visitcancel' in d) { visitFor = null; render(); }
+    else if (d.visitdel) { const l = leads.find(x => x.id === d.visitdel); Object.assign(l, await API.update('leads', l.id, { visit_at: null, visit_note: '' })); visitFor = null; render(); S.toast(t('visitRemoved')); }
+    else if (d.visitmsg) { const l = leads.find(x => x.id === d.visitmsg); contactLead(l, leadText(l, 'visit')); }
+    else if (d.follow) {
+      const l = leads.find(x => x.id === d.follow); contactLead(l, leadText(l, 'follow'));
+      Object.assign(l, await API.update('leads', l.id, { followed_up_at: new Date().toISOString(), status: l.status === 'new' ? 'contacted' : l.status })); render(); S.toast(t('followDone'));
+    }
     else if (d.leadst) { const [id, st] = d.leadst.split(':'); const l = leads.find(x => x.id === id); Object.assign(l, await API.update('leads', id, { status: st })); render(); }
     else if (d.leadp) {
       const l = leads.find(x => x.id === d.leadp);
@@ -441,7 +492,7 @@ app.addEventListener('click', async e => {
     else if (d.copylink) { try { await navigator.clipboard.writeText(d.copylink); S.toast(t('copied')); } catch (_) { prompt(t('copy'), d.copylink); } }
     else if (d.dlsigned) { const x = cur.documents.find(y => y.id === d.dlsigned); window.open(API.docUrl(x.file), '_blank', 'noopener'); }
     else if (d.upsigned || 'updoc' in d) { const f = $('#docfile'); f.dataset.id = d.upsigned || ''; f.dataset.kind = d.upsigned ? '' : $('#upkind').value; f.value = ''; f.click(); }
-    else if (d.dl) { const x = cur.documents.find(y => y.id === d.dl); await S.docs.download(x.kind, x.snapshot); }
+    else if (d.dl) { const x = cur.documents.find(y => y.id === d.dl); await S.docs.download(x.kind, S.docs.withSig(x)); }
     else if ('copy' in d) { try { await navigator.clipboard.writeText($('#clink').textContent); S.toast(t('copied')); } catch (_) { getSelection().selectAllChildren($('#clink')); } }
     else if ('dup' in d) { b.disabled = true; const id = await duplicate(cur); S.toast(t('dupOk')); ctab = 'project'; openProject(id); }
     else if ('delp' in d) {
