@@ -51,6 +51,22 @@
     /* client side: no login, only the private token */
     async clientProject(tok) { return ok(await sb.rpc('client_project', { tok })); },
     async clientComment(tok, who, msg) { ok(await sb.rpc('client_comment', { tok, who, msg })); },
-    async clientDecide(tok, co, approve, who) { ok(await sb.rpc('client_decide', { tok, co, approve, who })); }
+    async clientDecide(tok, co, approve, who) { ok(await sb.rpc('client_decide', { tok, co, approve, who })); },
+    /* errors go to a private table Victor and Cristian can read; no personal data, no secret link */
+    logError(msg, src) {
+      if (!sb) return;
+      const page = location.pathname.split('/').pop() || 'index.html';
+      sb.rpc('log_error', { pg: page, m: String(msg || '').slice(0, 500), s: String(src || '').slice(0, 1500), u: navigator.userAgent.slice(0, 200) }).then(() => {}, () => {});
+    }
   };
+
+  /* catch what breaks on people's phones so it can be fixed before they call */
+  const seen = new Set(); let sent = 0;
+  const report = (msg, src) => {
+    msg = String(msg || '').replace(/[?#]p=[\w-]+/g, '');
+    if (!msg || seen.has(msg) || sent >= 5 || /ResizeObserver loop|Script error\.?$/.test(msg)) return;
+    seen.add(msg); sent++; window.API.logError(msg, src);
+  };
+  addEventListener('error', e => report(e.message, (e.error && e.error.stack) || `${e.filename}:${e.lineno}:${e.colno}`));
+  addEventListener('unhandledrejection', e => { const r = e.reason || {}; report(r.message || String(r), r.stack || ''); });
 })();

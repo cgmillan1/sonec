@@ -19,7 +19,7 @@ const kpi = (l, v, cls = '', e = '') => `<div class="kpi ${cls}"><small>${l}</sm
 const showInstall = () => { try { if (localStorage.getItem('sonec-noinstall')) return false; } catch (_) {} return /iPhone|iPad|iPod/.test(navigator.userAgent) && !(navigator.standalone || matchMedia('(display-mode: standalone)').matches); };
 const unseen = b => b.comments.filter(c => c.author === 'client' && !c.seen).length;
 const setDot = s => { const d = $('#savedot'); if (d) d.textContent = s; };
-const fail = e => { console.error(e); S.toast(/fetch|network/i.test(e.message || '') ? t('saveFail') : t('error') + ': ' + (e.message || e)); };
+const fail = e => { console.error(e); if (!/fetch|network/i.test(e.message || '') && API.logError) API.logError(e.message || e, e.stack || ''); S.toast(/fetch|network/i.test(e.message || '') ? t('saveFail') : t('error') + ': ' + (e.message || e)); };
 
 /* ---------- screens ---------- */
 function setup() { return `<div class="lock"><div class="box">${S.MARK('l')}<h1>${t('setupT')}</h1><p>${t('setupS')}</p></div></div>`; }
@@ -118,7 +118,7 @@ function catBars(c) {
 function cDash() {
   const c = S.calc(cur);
   const banner = stOf(cur.project) === 'estimate_accepted' && !cur.documents.some(x => x.kind === 'contract' && x.status !== 'void') ? `<div class="card" style="border-color:var(--cu);display:flex;gap:12px;align-items:center;flex-wrap:wrap"><b style="flex:1 1 260px">${t('contractBanner')}</b><button class="primary" data-ctab="docs">${t('goDocs')}</button></div>` : '';
-  return banner + `<div class="kpis">${kpi(t('contract'), c.tot)}${kpi(t('collected'), c.paid)}${kpi(t('receivable'), c.bal)}${kpi(t('budget'), c.bud)}${kpi(t('spent'), c.spent, '', (c.bud ? Math.round(c.spent / c.bud * 100) : 0) + '% ' + t('of') + ' ' + t('budget').toLowerCase())}${kpi(t('left'), c.left, c.left < 0 ? 'neg' : '')}${kpi(t('profit'), c.profit, c.profit < 0 ? 'neg' : 'pos', t('profitSub'))}</div>
+  return banner + reviewCard(cur.project) + `<div class="kpis">${kpi(t('contract'), c.tot)}${kpi(t('collected'), c.paid)}${kpi(t('receivable'), c.bal)}${kpi(t('budget'), c.bud)}${kpi(t('spent'), c.spent, '', (c.bud ? Math.round(c.spent / c.bud * 100) : 0) + '% ' + t('of') + ' ' + t('budget').toLowerCase())}${kpi(t('left'), c.left, c.left < 0 ? 'neg' : '')}${kpi(t('profit'), c.profit, c.profit < 0 ? 'neg' : 'pos', t('profitSub'))}</div>
   <div class="kpis">${(() => { const sh = shareOf(c); return kpi(`${t('share')} ${pct()}%`, sh.s, '', t('shareOf')) + kpi(t('shareEarned'), sh.earned, 'pos', t('shareEarnedSub')) + kpi(t('sharePending'), sh.pending) + kpi(t('profitAfter'), sh.after, sh.after < 0 ? 'neg' : ''); })()}</div>
   <div class="cols">${buyForm()}${payForm()}</div>
   <div class="cols"><div class="card"><h2>${t('byCat')}</h2>${catBars(c)}</div><div class="card"><h2>${t('recent')}</h2>${expSorted().slice(0, 6).map(e => `<div class="mat"><div><b>${esc(e.description)}</b><small>${fdate(e.spent_on)} · ${esc(e.vendor)} · ${esc(catName(e.budget_id))}</small></div><span class="n">${money(e.amount)}</span></div>`).join('') || `<p class="sub">${t('none')}</p>`}</div></div>`;
@@ -132,12 +132,27 @@ function cMoney() {
   ${expSorted().map(e => `<div class="row r-exp2">${fld('expenses', e, 'spent_on', 'date', 'dt')}${fld('expenses', e, 'description', 'text', 'ds')}${sel('expenses', e, 'budget_id', budOpts(), 'cs')}${fld('expenses', e, 'vendor', 'text', 'st')}${fld('expenses', e, 'amount', 'number', 'am')}${e.receipt ? `<button class="btn2 rc" data-rcv="${esc(e.receipt)}">${t('viewReceipt')}</button>` : `<button class="btn2 rc" data-rc="${e.id}">${t('addReceipt')}</button>`}${del('expenses', e.id)}</div>`).join('') || `<p class="sub">${t('none')}</p>`}</div>`;
 }
 const sorted = tb => cur[tb].slice().sort((a, b) => (a.sort || 0) - (b.sort || 0));
+const paySorted = () => cur.payments.slice().sort((a, b) => String(a.paid_on).localeCompare(String(b.paid_on)) || String(a.created_at).localeCompare(String(b.created_at)));
+const pshort = () => String(cur.project.id).replace(/-/g, '').slice(0, 4).toUpperCase();
+/* invoice for a scheduled payment, receipt for a payment received */
+async function billDoc(type, id) {
+  const c = S.calc(cur), snap = S.docs.snapshot(cur, settings, docLang || S.L);
+  if (type === 'invoice') {
+    const i = c.ms.findIndex(m => m.id === id), m = c.ms[i]; if (!m) return;
+    snap.inv = { type, no: `${pshort()}-${i + 1}`, label: m.label || t('invoiceBtn'), amount: +m.amount || 0, covered: m.covered || 0, date: S.today(), due: null, paidToDate: c.paid };
+  } else {
+    const ps = paySorted(), i = ps.findIndex(x => x.id === id), x = ps[i]; if (!x) return;
+    const upTo = ps.slice(0, i + 1).reduce((a, y) => a + (+y.amount || 0), 0);
+    snap.inv = { type, no: `R-${pshort()}-${i + 1}`, label: x.note || '', amount: +x.amount || 0, date: x.paid_on || S.today(), paidToDate: upTo };
+  }
+  await S.docs.download('invoice', snap); S.toast(t('docMade'));
+}
 function cPays() {
   const c = S.calc(cur);
   return `<div class="kpis">${kpi(t('contract'), c.tot)}${kpi(t('collected'), c.paid, 'pos')}${kpi(t('receivable'), c.bal)}</div>` + payForm() +
   `<div class="card"><h2>${t('schedule')}</h2><p class="sub">${t('msHint')} ${t('scheduleTotal')}: <b>${money(c.msTotal)}</b> · ${t('contract')}: <b>${money(c.tot)}</b></p>
-  ${c.ms.map(m => `<div class="row r-ms">${fld('milestones', m, 'label', 'text', 'lb2')}${fld('milestones', m, 'amount', 'number', 'am')}<span class="pill ${m.st}">${t('ms_' + m.st)}</span>${del('milestones', m.id)}</div>`).join('')}<button class="add" data-add="milestones">${t('addMs')}</button></div>
-  <div class="card"><h2>${t('history')}</h2>${cur.payments.slice().sort((a, b) => String(a.paid_on).localeCompare(String(b.paid_on))).map(x => `<div class="row r-pay">${fld('payments', x, 'paid_on', 'date', 'dt')}${fld('payments', x, 'note', 'text', 'nt')}${fld('payments', x, 'amount', 'number', 'am')}${del('payments', x.id)}</div>`).join('') || `<p class="sub">${t('none')}</p>`}</div>`;
+  ${c.ms.map(m => `<div class="row r-ms wi">${fld('milestones', m, 'label', 'text', 'lb2')}${fld('milestones', m, 'amount', 'number', 'am')}<span class="pill ${m.st}">${t('ms_' + m.st)}</span>${m.st === 'paid' ? '<span></span>' : `<button class="btn2 ib" data-inv="${m.id}">${t('invoiceBtn')}</button>`}${del('milestones', m.id)}</div>`).join('')}<button class="add" data-add="milestones">${t('addMs')}</button>${c.ms.length ? `<p class="hint">${t('invoiceHint')}</p>` : ''}</div>
+  <div class="card"><h2>${t('history')}</h2>${paySorted().map(x => `<div class="row r-pay wi">${fld('payments', x, 'paid_on', 'date', 'dt')}${fld('payments', x, 'note', 'text', 'nt')}${fld('payments', x, 'amount', 'number', 'am')}<button class="btn2 ib" data-rcpt="${x.id}">${t('receiptBtn')}</button>${del('payments', x.id)}</div>`).join('') || `<p class="sub">${t('none')}</p>`}</div>`;
 }
 function cChanges() {
   const sts = ['draft', 'pending', 'approved', 'declined'].map(s => [s, t('co_' + s)]);
@@ -189,6 +204,7 @@ function cDocs() {
   <div class="card"><h2>${t('contractData')}</h2><p class="sub">${t('contractDataSub')}</p><div class="grid2" style="margin-top:12px">
   <label>${t('legalName')}${fld('settings', settings, 'legal_name')}</label><label>${t('licenseNo')}${fld('settings', settings, 'license_no')}</label>
   <label>${t('bizAddress')}${fld('settings', settings, 'address')}</label><label>${t('phone')}${fld('settings', settings, 'phone', 'tel')}</label></div>
+  <div class="grid2"><label>${t('revUrl')}${fld('settings', settings, 'review_url', 'url')}</label><label>${t('notifyEmail')}${fld('settings', settings, 'notify_email', 'email')}</label></div><p class="hint">${t('revUrlHint')} ${t('notifyHint')}</p>
   <label>${t('warranty')}${ta('settings', settings, 'warranty')}</label><p class="hint">${t('warrantyHint')}</p>
   <label style="margin-top:12px">${t('extraTerms')}${ta('settings', settings, 'extra_terms', 4)}</label>
   <p class="hint" style="margin-top:12px">${t('legalNote')}</p></div>`;
@@ -199,6 +215,18 @@ function cMsgs() {
   <form class="sendrow" id="msgf"><textarea id="rp" rows="2" placeholder="${t('writeMsg')}" aria-label="${t('writeMsg')}"></textarea><button class="primary" type="submit">${t('send')}</button></form></div>`;
 }
 const clientLink = p => new URL('proyecto.html?p=' + p.client_token, location.href).href;
+/* when a job is finished, ask the client for a Google review: reviews are what moves Sonec up on Google */
+function reviewCard(p) {
+  if (stOf(p) !== 'done') return '';
+  const url = String(settings.review_url || '').trim();
+  if (!url) return `<div class="card review"><h2>${t('revT')}</h2><p class="sub">${t('revNoLink')}</p><label>${t('revUrl')}${fld('settings', settings, 'review_url', 'url')}</label><p class="hint">${t('revUrlHint')}</p></div>`;
+  const first = (p.client_name || '').replace(/\s*\(.*\)\s*$/, '').replace(/^familia\s+/i, '').split(' ')[0] || '';
+  const lang = docLang || S.L, msg = encodeURIComponent(S.T[lang].revMsg.replace('{n}', first).replace(/\s+,/, ',') + url);
+  const digits = (p.client_phone || '').replace(/\D/g, ''), phone = digits.length === 10 ? '1' + digits : digits;
+  return `<div class="card review"><span class="stars" aria-hidden="true">★★★★★</span><h2>${t('revT')}</h2><p class="sub">${t('revS')}</p>
+  <div class="acts">${phone ? `<a class="primary" href="https://wa.me/${phone}?text=${msg}" target="_blank" rel="noopener">WhatsApp</a><a class="btn2" href="sms:+${phone}?&body=${msg}">${t('sms')}</a>` : ''}${p.client_email ? `<a class="btn2" href="mailto:${esc(p.client_email)}?subject=${encodeURIComponent(S.T[lang].revSubj)}&body=${msg}">${t('mail')}</a>` : ''}<button class="btn2" data-copylink="${esc(url)}">${t('revCopy')}</button></div>
+  ${phone || p.client_email ? '' : `<small class="sbhint">${t('noPhone')}</small>`}</div>`;
+}
 function shareBar(p) {
   const link = clientLink(p), digits = (p.client_phone || '').replace(/\D/g, ''), phone = digits.length === 10 ? '1' + digits : digits;
   const msg = encodeURIComponent(t('shareMsg').replace('{n}', (p.client_name || '').replace(/\s*\(.*\)\s*$/, '').replace(/^familia\s+/i, '').split(' ')[0] || '').replace(/\s+,/, ',') + link);
@@ -282,6 +310,8 @@ app.addEventListener('change', async e => {
   if (d.t === 'projects' && (d.f === 'client_phone' || d.f === 'client_phone2') && v) { if (!S.phoneOk(v)) { S.toast(t('errPhone')); n.setAttribute('aria-invalid', 'true'); return n.focus(); } v = S.fmtPhone(v); n.value = v; n.removeAttribute('aria-invalid'); }
   if (d.t === 'projects' && d.f === 'client_email' && v) { if (!S.emailOk(v)) { S.toast(t('errEmail')); n.setAttribute('aria-invalid', 'true'); return n.focus(); } v = v.trim().toLowerCase(); n.value = v; n.removeAttribute('aria-invalid'); }
   if (d.t === 'projects' && d.f === 'client_name' && !String(v).trim()) { n.value = rowOf('projects', d.id).client_name || ''; return S.toast(t('errName')); }
+  if (d.t === 'settings' && d.f === 'review_url' && v) { v = v.trim(); if (!/^https:\/\/[^\s]+$/i.test(v)) { S.toast(t('revUrlErr')); n.setAttribute('aria-invalid', 'true'); return n.focus(); } n.removeAttribute('aria-invalid'); }
+  if (d.t === 'settings' && d.f === 'notify_email' && v) { if (!S.emailOk(v)) { S.toast(t('errEmail')); n.setAttribute('aria-invalid', 'true'); return n.focus(); } v = v.trim().toLowerCase(); n.value = v; n.removeAttribute('aria-invalid'); }
   if (d.f === 'share_pct') { v = Math.min(100, Math.max(0, +v || 0)); n.value = v; }
   if (d.t === 'projects' && d.f === 'title' && !String(v).trim()) { n.value = rowOf('projects', d.id).title || ''; return n.focus(); }
   const okSaved = await save(d.t, d.id, d.f, v);
@@ -398,6 +428,8 @@ app.addEventListener('click', async e => {
     else if (d.rc) { const f = $('#rcfile'); f.dataset.id = d.rc; f.value = ''; f.click(); }
     else if (d.rcv) { const w = window.open('', '_blank'); const u = await API.receiptUrl(d.rcv); if (w) w.location = u; else location.href = u; }
     else if ('print' in d) S.printEstimate(cur, settings);
+    else if (d.inv) await billDoc('invoice', d.inv);
+    else if (d.rcpt) await billDoc('receipt', d.rcpt);
     else if (d.doc === 'estimate') { await S.docs.download('estimate', S.docs.snapshot(cur, settings, docLang || S.L)); }
     else if (d.mkdoc) {
       const lang = docLang || S.L;

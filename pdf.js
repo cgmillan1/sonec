@@ -318,7 +318,43 @@ async function completionPdf(snap) {
   D.sign(true);
   return D.finish(fileName(snap.lang === 'es' ? 'terminacion' : 'completion', snap));
 }
-async function build(kind, snap) { return kind === 'contract' ? contractPdf(snap) : kind === 'completion' ? completionPdf(snap) : estimatePdf(snap); }
+
+/* ---- invoice for a scheduled payment, and receipt for a payment received ---- */
+const IX = {
+  es: { invoice: 'Factura', receipt: 'Recibo de pago', no: 'Número', date: 'Fecha', due: 'Vence', billTo: 'Facturar a', receivedFrom: 'Recibido de',
+    thisStage: 'Monto de esta etapa', covered: 'Ya pagado de esta etapa', dueNow: 'Total a pagar', received: 'Monto recibido', note: 'Nota',
+    statement: 'Estado de cuenta del proyecto', contractTot: 'Total del contrato (con cambios aprobados)', paidToDate: 'Pagado a la fecha', balance: 'Saldo pendiente',
+    payTo: 'Hacer el pago a nombre de', questions: 'Preguntas', thanks: 'Gracias por su pago.', receiptLine: (n, a, d) => `Recibimos de ${n} la cantidad de ${a} el ${d}, como pago del proyecto indicado.`,
+    upon: 'Al recibir', file: 'factura', rfile: 'recibo' },
+  en: { invoice: 'Invoice', receipt: 'Payment receipt', no: 'Number', date: 'Date', due: 'Due', billTo: 'Bill to', receivedFrom: 'Received from',
+    thisStage: 'Amount for this stage', covered: 'Already paid on this stage', dueNow: 'Amount due', received: 'Amount received', note: 'Note',
+    statement: 'Project account statement', contractTot: 'Contract total (with approved changes)', paidToDate: 'Paid to date', balance: 'Balance due',
+    payTo: 'Make payment to', questions: 'Questions', thanks: 'Thank you for your payment.', receiptLine: (n, a, d) => `We received from ${n} the amount of ${a} on ${d}, as payment for the project below.`,
+    upon: 'Upon receipt', file: 'invoice', rfile: 'receipt' }
+};
+async function invoicePdf(snap) {
+  await logo();
+  const X = IX[snap.lang], v = snap.inv, isR = v.type === 'receipt';
+  const D = Doc(isR ? X.receipt : X.invoice, snap.project.title, snap), T = D.T, p = snap.project, k = snap.contact;
+  D.head();
+  D.kv([[X.no, v.no], [X.date, S.fdate(v.date)], ...(isR ? [] : [[X.due, v.due ? S.fdate(v.due) : X.upon]]),
+    [isR ? X.receivedFrom : X.billTo, [p.client_name, [p.client_phone, p.client_email].filter(Boolean).join(' · ')].filter(Boolean).join('\n')],
+    [T.property, p.address], [T.project, p.title]]);
+  if (isR) {
+    D.p(X.receiptLine(p.client_name || T.blank, M(v.amount), S.fdate(v.date)), { size: 11, gap: 10 });
+    D.table([{ t: T.desc, w: 420 }, { t: T.amount, w: 84, r: 1 }], [[v.label || X.received, M(v.amount)]], [[X.received, M(v.amount), 1]]);
+  } else {
+    const rows = [[X.thisStage, M(v.amount)]]; if (v.covered > 0.004) rows.push([X.covered, '-' + M(v.covered)]); rows.push([X.dueNow, M(v.amount - v.covered), 1]);
+    D.table([{ t: T.desc, w: 420 }, { t: T.amount, w: 84, r: 1 }], [[v.label, M(v.amount)]], rows);
+  }
+  D.h2(X.statement);
+  D.totals([[X.contractTot, M(snap.totals.tot)], [X.paidToDate, M(v.paidToDate)], [X.balance, M(Math.max(0, snap.totals.tot - v.paidToDate)), 1]]);
+  D.p(isR ? X.thanks : `${X.payTo}: ${k.legal_name || k.company}`, { bold: 1, gap: 4 });
+  const ask = [k.phone, k.email].filter(Boolean).join(' · ');
+  if (ask) D.p(`${X.questions}: ${ask}`, { color: MUTE });
+  return D.finish(fileName(isR ? X.rfile : X.file, snap).replace('.pdf', `-${String(v.no).replace(/[^a-z0-9-]/gi, '')}.pdf`));
+}
+async function build(kind, snap) { return kind === 'invoice' ? invoicePdf(snap) : kind === 'contract' ? contractPdf(snap) : kind === 'completion' ? completionPdf(snap) : estimatePdf(snap); }
 
 S.docs = {
   snapshot, adjustments, build,

@@ -20,7 +20,8 @@ function page() {
 }
 function overview(c) {
   const nx = b.steps.find(s => !s.done), u = b.updates[0], pend = b.change_orders.filter(x => x.status === 'pending');
-  return `${pend.length ? `<div class="card" style="border-color:var(--cu)"><h2>${t('co_pending')}</h2><p class="sub">${pend.map(x => esc(x.title) + ' · ' + money(x.amount)).join('<br>')}</p><button class="primary" data-tab="changes">${t('changes')}</button></div>` : ''}
+  const rv = b.project.status === 'done' && /^https:\/\//i.test(contact.review_url || '') ? `<div class="card review"><span class="stars" aria-hidden="true">★★★★★</span><h2>${t('revClientT')}</h2><p class="sub">${t('revClientS')}</p><div class="acts"><a class="primary" href="${esc(contact.review_url)}" target="_blank" rel="noopener">${t('revClientBtn')}</a></div></div>` : '';
+  return `${rv}${pend.length ? `<div class="card" style="border-color:var(--cu)"><h2>${t('co_pending')}</h2><p class="sub">${pend.map(x => esc(x.title) + ' · ' + money(x.amount)).join('<br>')}</p><button class="primary" data-tab="changes">${t('changes')}</button></div>` : ''}
   ${b.project.details ? `<div class="card"><h2>${t('aboutProject')}</h2><p style="white-space:pre-wrap;margin:6px 0 0">${esc(b.project.details)}</p></div>` : ''}
   <div class="kpis"><div class="kpi"><small>${t('total')}</small><b>${money(c.tot)}</b></div><div class="kpi pos"><small>${t('paidSoFar')}</small><b>${money(c.paid)}</b></div><div class="kpi"><small>${t('remaining')}</small><b>${money(c.bal)}</b></div><div class="kpi"><small>${t('materials')}</small><b>${c.mb} / ${b.materials.length}</b></div></div>
   <div class="cols"><div class="card"><h2>${t('next')}</h2>${nx ? `<p class="sub">${esc(nx.title)}${nx.due_date ? ' · ' + fdate(nx.due_date) : ''}</p>` : `<p class="sub">${t('st_done')}</p>`}<div class="bar"><i style="width:${c.pct}%"></i></div><small class="sub">${c.sd} / ${b.steps.length} ${t('steps').toLowerCase()}</small></div>
@@ -82,7 +83,7 @@ async function load() {
     if (!d) { state = 'missing'; return render(); }
     contact = d.contact || {}; b = { project: d.project, items: d.items, materials: d.materials, steps: d.steps, updates: d.updates, payments: d.payments, milestones: d.milestones, change_orders: d.change_orders, comments: d.comments, documents: d.documents || [] };
     state = 'ok';
-  } catch (e) { console.error(e); if (state !== 'ok') state = 'error'; }
+  } catch (e) { console.error(e); if (API.logError) API.logError(e.message || e, e.stack || ''); if (state !== 'ok') state = 'error'; }
   render();
 }
 
@@ -93,15 +94,15 @@ app.addEventListener('click', async e => {
   else if (d.mf) { mf = d.mf; render(); }
   else if ('reload' in d) { state = b ? 'ok' : 'loading'; render(); load(); }
   else if ('print' in d) S.printEstimate(b, contact);
-  else if (d.doc === 'estimate') { try { await S.docs.download('estimate', S.docs.snapshot(b, contact, S.L)); } catch (er) { console.error(er); S.toast(t('error')); } }
-  else if (d.dl) { const x = b.documents.find(y => y.id === d.dl); try { await S.docs.download(x.kind, x.snapshot); } catch (er) { console.error(er); S.toast(t('error')); } }
+  else if (d.doc === 'estimate') { try { await S.docs.download('estimate', S.docs.snapshot(b, contact, S.L)); } catch (er) { console.error(er); if (API.logError) API.logError(er.message || er, er.stack || ''); S.toast(t('error')); } }
+  else if (d.dl) { const x = b.documents.find(y => y.id === d.dl); try { await S.docs.download(x.kind, x.snapshot); } catch (er) { console.error(er); if (API.logError) API.logError(er.message || er, er.stack || ''); S.toast(t('error')); } }
   else if (d.photo) S.lightbox(d.photo);
   else if (d.decide) {
     const inp = document.querySelector(`[data-namefor="${d.decide}"]`), who = inp.value.trim();
     if (!who) { S.toast(t('nameNeeded')); return inp.focus(); }
     keepName(who); x.disabled = true;
     try { await API.clientDecide(tok, d.decide, d.ok === '1', who); await load(); S.toast(d.ok === '1' ? t('co_approved') : t('co_declined')); }
-    catch (er) { console.error(er); x.disabled = false; S.toast(t('error')); }
+    catch (er) { console.error(er); if (API.logError) API.logError(er.message || er, er.stack || ''); x.disabled = false; S.toast(t('error')); }
   }
 });
 app.addEventListener('submit', async e => {
@@ -111,7 +112,7 @@ app.addEventListener('submit', async e => {
   if (!msg) return $('#mb').focus();
   if (sending) return; keepName(who); sending = true; render();
   let failed = false;
-  try { await API.clientComment(tok, who, msg); await load(); } catch (er) { console.error(er); failed = true; S.toast(/too many/i.test(er.message || '') ? t('tooMany') : t('error')); }
+  try { await API.clientComment(tok, who, msg); await load(); } catch (er) { console.error(er); if (API.logError) API.logError(er.message || er, er.stack || ''); failed = true; S.toast(/too many/i.test(er.message || '') ? t('tooMany') : t('error')); }
   sending = false; render(); if (failed && $('#mb')) $('#mb').value = msg;
 });
 document.addEventListener('visibilitychange', () => { if (document.visibilityState === 'visible' && state === 'ok' && !document.activeElement?.matches('input,textarea')) load(); });

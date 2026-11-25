@@ -165,7 +165,7 @@ begin
   select * into p from projects where client_token = tok;
   if p.id is null then return null; end if;
   select json_build_object(
-    'project', json_build_object('id', p.id, 'client_name', p.client_name, 'title', p.title,
+    'project', json_build_object('id', p.id, 'client_name', p.client_name, 'title', p.title, 'details', p.details, 'service', p.service,
        'address', p.address, 'start_date', p.start_date, 'end_date', p.end_date,
        'status', p.status, 'tax_rate', p.tax_rate),
     'contact', (select json_build_object('company', s.company, 'name', s.contact_name, 'phone', s.phone, 'email', s.email,
@@ -179,7 +179,7 @@ begin
     'milestones', coalesce((select json_agg(x order by x.sort) from (select id, label, amount, sort from milestones where project_id = p.id) x), '[]'),
     'change_orders', coalesce((select json_agg(x order by x.created_at desc) from (select id, title, details, kind, amount, status, decided_by, decided_at, created_at from change_orders where project_id = p.id and status <> 'draft') x), '[]'),
     'comments', coalesce((select json_agg(x order by x.created_at) from (select id, author, name, body, created_at from comments where project_id = p.id) x), '[]'),
-    'documents', coalesce((select json_agg(x order by x.created_at desc) from (select id, kind, lang, snapshot, total, status, signed_by, signed_on, created_at from documents where project_id = p.id and status in ('sent','signed')) x), '[]')
+    'documents', coalesce((select json_agg(x order by x.created_at desc) from (select id, kind, lang, snapshot, total, status, signed_by, signed_on, file, created_at from documents where project_id = p.id and status in ('sent','signed')) x), '[]')
   ) into r;
   return r;
 end $$;
@@ -270,6 +270,19 @@ alter table projects alter column status set default 'estimate_sent';
 alter table projects add constraint projects_status_check
   check (status in ('estimate_sent','estimate_accepted','progress','done'));
 
+-- una copia vieja de la app (guardada en el navegador) puede mandar los estados
+-- viejos: se convierten solos en vez de dar error
+create or replace function projects_status_compat() returns trigger language plpgsql as $$
+begin
+  if new.status is null or new.status = 'planning' then new.status := 'estimate_sent';
+  elsif new.status = 'paused' then new.status := 'progress';
+  end if;
+  return new;
+end $$;
+drop trigger if exists projects_status_compat on projects;
+create trigger projects_status_compat before insert or update of status on projects
+  for each row execute function projects_status_compat();
+
 -- ---------- Datos para contratos y documentos (versión 3) ------------
 
 alter table settings add column if not exists legal_name text default '';
@@ -277,6 +290,9 @@ alter table settings add column if not exists license_no text default '';
 alter table settings add column if not exists address text default '';
 alter table settings add column if not exists warranty text default '';
 alter table settings add column if not exists extra_terms text default '';
+alter table settings add column if not exists share_pct numeric default 10;
+alter table settings drop constraint if exists settings_share_range;
+alter table settings add constraint settings_share_range check (share_pct >= 0 and share_pct <= 100);
 
 create table if not exists documents (
   id uuid primary key default gen_random_uuid(),
@@ -296,6 +312,21 @@ create policy own_rows on documents for all to authenticated
   using (exists (select 1 from projects p where p.id = project_id and p.owner = auth.uid()))
   with check (exists (select 1 from projects p where p.id = project_id and p.owner = auth.uid()));
 create index if not exists documents_project_idx on documents (project_id);
+
+-- PDF firmado (por ejemplo, el que regresa de DocuSign) o un contrato que Victor sube
+alter table documents add column if not exists file text;
+alter table documents drop constraint if exists documents_kind_check;
+alter table documents add constraint documents_kind_check check (kind in ('estimate','contract','completion'));
+
+-- ---------- Datos del cliente y detalles del proyecto (versión 3) ------
+alter table projects add column if not exists client_phone2 text default '';
+alter table projects add column if not exists details text default '';
+alter table projects add column if not exists service text default '';
+alter table projects drop constraint if exists projects_client_len;
+alter table projects add constraint projects_client_len check (
+  char_length(coalesce(client_phone,'')) <= 40 and char_length(coalesce(client_phone2,'')) <= 40
+  and char_length(coalesce(client_email,'')) <= 160 and char_length(coalesce(details,'')) <= 4000
+  and char_length(coalesce(service,'')) <= 80) not valid;
 
 -- ---------- Reglas de datos (montos, largos, enlaces) ----------------
 -- Se agregan solo si no existen, para poder correr este archivo otra vez.
@@ -359,6 +390,10 @@ insert into storage.buckets (id, name, public) values ('photos', 'photos', true)
   on conflict (id) do nothing;
 insert into storage.buckets (id, name, public) values ('receipts', 'receipts', false)
   on conflict (id) do nothing;
+-- docs: PDFs firmados. Igual que las fotos: nombres imposibles de adivinar, para
+-- que el cliente los descargue desde su enlace privado sin iniciar sesión.
+insert into storage.buckets (id, name, public) values ('docs', 'docs', true)
+  on conflict (id) do nothing;
 
 drop policy if exists sonec_photos_write on storage.objects;
 create policy sonec_photos_write on storage.objects for insert to authenticated
@@ -369,6 +404,10 @@ create policy sonec_photos_delete on storage.objects for delete to authenticated
 drop policy if exists sonec_photos_list on storage.objects;
 create policy sonec_photos_list on storage.objects for select to authenticated
   using (bucket_id = 'photos' and public.owns_project_folder(name));
+drop policy if exists sonec_docs_all on storage.objects;
+create policy sonec_docs_all on storage.objects for all to authenticated
+  using (bucket_id = 'docs' and public.owns_project_folder(name))
+  with check (bucket_id = 'docs' and public.owns_project_folder(name));
 drop policy if exists sonec_receipts_all on storage.objects;
 create policy sonec_receipts_all on storage.objects for all to authenticated
   using (bucket_id = 'receipts' and public.owns_project_folder(name))
@@ -389,3 +428,115 @@ begin
     end if;
   end loop;
 end $$;
+
+-- ===== v5 (nov 2026): reglas mas rapidas, indices, avisos de solicitudes, resenas, registro de errores =====
+-- 1) funciones de trigger con search_path fijo
+alter function public.expenses_budget_same_project() set search_path = public;
+alter function public.projects_status_compat() set search_path = public;
+
+-- 2) reglas RLS: auth.uid() se calcula una vez por consulta, no por fila
+do $$
+declare t text;
+begin
+  foreach t in array array['items','materials','steps','updates','payments','milestones','change_orders','budget','expenses','comments','documents'] loop
+    execute format('drop policy if exists own_rows on public.%I', t);
+    execute format($p$create policy own_rows on public.%I for all to authenticated
+      using (exists (select 1 from public.projects p where p.id = %I.project_id and p.owner = (select auth.uid())))
+      with check (exists (select 1 from public.projects p where p.id = %I.project_id and p.owner = (select auth.uid())))$p$, t, t, t);
+  end loop;
+end $$;
+drop policy if exists own_projects on public.projects;
+create policy own_projects on public.projects for all to authenticated
+  using (owner = (select auth.uid())) with check (owner = (select auth.uid()));
+drop policy if exists own_settings on public.settings;
+create policy own_settings on public.settings for all to authenticated
+  using (owner = (select auth.uid())) with check (owner = (select auth.uid()));
+drop policy if exists own_leads on public.leads;
+create policy own_leads on public.leads for all to authenticated
+  using (owner = (select auth.uid())) with check (owner = (select auth.uid()));
+
+-- 3) indices de llaves foraneas
+create index if not exists projects_owner_idx on public.projects(owner);
+create index if not exists leads_project_idx on public.leads(project_id);
+
+-- 4) las funciones del cliente no las necesita un usuario con sesion; solo anon (token) y Victor
+revoke execute on function public.owns_project_folder(text) from anon, public;
+
+alter table public.settings add column if not exists review_url text;
+alter table public.settings add column if not exists notify_email text;
+alter table public.leads add column if not exists notified_at timestamptz;
+do $$ begin
+  alter table public.settings add constraint settings_review_url_chk check (review_url is null or review_url = '' or review_url ~* '^https://');
+exception when duplicate_object then null; end $$;
+
+-- la pagina del cliente tambien recibe el enlace de resenas
+create or replace function public.client_project(tok text)
+returns json language plpgsql security definer set search_path = public as $$
+declare p projects; r json;
+begin
+  select * into p from projects where client_token = tok;
+  if p.id is null then return null; end if;
+  select json_build_object(
+    'project', json_build_object('id', p.id, 'client_name', p.client_name, 'title', p.title, 'details', p.details, 'service', p.service,
+       'address', p.address, 'start_date', p.start_date, 'end_date', p.end_date,
+       'status', p.status, 'tax_rate', p.tax_rate),
+    'contact', (select json_build_object('company', s.company, 'name', s.contact_name, 'phone', s.phone, 'email', s.email,
+                'legal_name', s.legal_name, 'license_no', s.license_no, 'address', s.address, 'review_url', s.review_url)
+                from settings s where s.owner = p.owner),
+    'items', coalesce((select json_agg(i order by i.sort, i.description) from (select id, kind, description, qty, price, sort from items where project_id = p.id) i), '[]'),
+    'materials', coalesce((select json_agg(m order by m.sort, m.name) from (select id, name, qty, unit, purchased, purchased_on, sort from materials where project_id = p.id) m), '[]'),
+    'steps', coalesce((select json_agg(s order by s.sort, s.due_date) from (select id, title, done, due_date, sort from steps where project_id = p.id) s), '[]'),
+    'updates', coalesce((select json_agg(u order by u.created_at desc) from (select id, body, photos, created_at from updates where project_id = p.id) u), '[]'),
+    'payments', coalesce((select json_agg(x order by x.paid_on) from (select id, paid_on, note, amount from payments where project_id = p.id) x), '[]'),
+    'milestones', coalesce((select json_agg(x order by x.sort) from (select id, label, amount, sort from milestones where project_id = p.id) x), '[]'),
+    'change_orders', coalesce((select json_agg(x order by x.created_at desc) from (select id, title, details, kind, amount, status, decided_by, decided_at, created_at from change_orders where project_id = p.id and status <> 'draft') x), '[]'),
+    'comments', coalesce((select json_agg(x order by x.created_at) from (select id, author, name, body, created_at from comments where project_id = p.id) x), '[]'),
+    'documents', coalesce((select json_agg(x order by x.created_at desc) from (select id, kind, lang, snapshot, total, status, signed_by, signed_on, file, created_at from documents where project_id = p.id and status in ('sent','signed')) x), '[]')
+  ) into r;
+  return r;
+end $$;
+
+-- registro de errores del app (sin datos personales: mensaje, pagina sin enlace secreto, navegador)
+create table if not exists public.app_errors (
+  id bigserial primary key,
+  created_at timestamptz not null default now(),
+  page text, msg text, src text, ua text
+);
+alter table public.app_errors enable row level security;
+drop policy if exists read_errors on public.app_errors;
+create policy read_errors on public.app_errors for select to authenticated using (true);
+revoke all on public.app_errors from anon, authenticated;
+grant select on public.app_errors to authenticated;
+
+create or replace function public.log_error(pg text, m text, s text, u text)
+returns void language plpgsql security definer set search_path = public as $$
+begin
+  if (select count(*) from app_errors where created_at > now() - interval '10 minutes') >= 60 then return; end if;
+  insert into app_errors (page, msg, src, ua) values (left(pg, 120), left(m, 500), left(s, 1500), left(u, 200));
+  delete from app_errors where created_at < now() - interval '90 days';
+end $$;
+revoke all on function public.log_error(text, text, text, text) from public;
+grant execute on function public.log_error(text, text, text, text) to anon, authenticated;
+
+-- aviso por correo cuando llega una solicitud del sitio
+create extension if not exists pg_net with schema extensions;
+create or replace function public.leads_notify()
+returns trigger language plpgsql security definer set search_path = public, extensions as $$
+begin
+  perform net.http_post(
+    url := 'https://zeavzcpsyvcoeghknomm.supabase.co/functions/v1/lead-alert',
+    body := jsonb_build_object('id', new.id),
+    headers := '{"Content-Type":"application/json"}'::jsonb,
+    timeout_milliseconds := 5000);
+  return new;
+exception when others then
+  return new; -- un aviso que falla nunca debe impedir guardar la solicitud
+end $$;
+revoke all on function public.leads_notify() from public, anon, authenticated;
+drop trigger if exists leads_notify on public.leads;
+create trigger leads_notify after insert on public.leads for each row execute function public.leads_notify();
+
+update public.settings set notify_email = 'sonecgerencia@gmail.com' where coalesce(notify_email, '') = '';
+
+grant select, update (notified_at) on public.leads to service_role;
+grant select (owner, notify_email) on public.settings to service_role;
