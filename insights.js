@@ -93,8 +93,9 @@
     if (document.querySelector('.ci-fb-btn')) return;
     const b = document.createElement('button');
     b.type = 'button'; b.className = 'ci-fb-btn'; b.setAttribute('aria-haspopup', 'dialog');
-    b.style.cssText = 'position:fixed;right:14px;bottom:calc(14px + env(safe-area-inset-bottom));z-index:50;padding:8px 13px;border:0;border-radius:999px;font:inherit;font-size:14px;background:var(--cu,#111);color:#fff;opacity:.92;box-shadow:0 3px 12px rgba(0,0,0,.25);cursor:pointer';
-    const label = () => { b.textContent = tx('btn'); };
+    /* sits at the very end of the page, under the app, so it never covers content */
+    b.style.cssText = 'display:block;margin:28px auto calc(28px + env(safe-area-inset-bottom));padding:10px 18px;border:1px solid var(--line,#ccc);border-radius:999px;font:inherit;font-size:15px;background:transparent;color:inherit;opacity:.8;cursor:pointer';
+    const label = () => { b.textContent = '💬 ' + tx('btn'); };
     label();
     document.addEventListener('click', e => { if (e.target.closest && e.target.closest('[data-lang]')) setTimeout(label, 50); });
     b.addEventListener('click', openBox);
