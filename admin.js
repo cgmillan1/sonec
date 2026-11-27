@@ -16,6 +16,18 @@ const pct = () => { const v = +settings.share_pct; return isFinite(v) && setting
 const shareOf = c => { const s = c.sub * pct() / 100, r = c.tot > 0 ? Math.min(1, Math.max(0, c.paid / c.tot)) : 0; return { s, earned: s * r, pending: s - s * r, after: (c.profit || 0) - s }; };
 const kinds = () => [['mat', t('materials')], ['lab', t('labor')]];
 const kpi = (l, v, cls = '', e = '') => `<div class="kpi ${cls}"><small>${l}</small><b>${money(v)}</b>${e ? `<em>${e}</em>` : ''}</div>`;
+/* ---------- UI v2: compact summaries (no cents), dropdown menus ---------- */
+Object.assign(SONEC.T.es, { uiContact: 'Contactar', uiMore: 'Más opciones', uiSummary: 'Resumen', uiNeeds: 'Próximos pasos', uiAddExpense: '+ Registrar gasto', uiAddPay: '+ Registrar pago', uiCompanyData: 'Datos de la empresa y comisión' });
+Object.assign(SONEC.T.en, { uiContact: 'Contact', uiMore: 'More options', uiSummary: 'Summary', uiNeeds: 'Next steps', uiAddExpense: '+ Log expense', uiAddPay: '+ Log payment', uiCompanyData: 'Company details and commission' });
+const m0 = n => new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD', maximumFractionDigits: 0 }).format(Math.round(+n || 0));
+const stat = (l, v, cls = '', e = '') => `<div class="st ${cls}"><small>${l}</small><b>${m0(v)}</b>${e ? `<em>${e}</em>` : ''}</div>`;
+const line = (l, v, cls = '', e = '') => `<div class="ln ${cls}"><span>${l}${e ? ` <em>${e}</em>` : ''}</span><b>${m0(v)}</b></div>`;
+const shareFold = (sh, k = 'share') => `<details class="fold"${fo(k)}><summary><span>${t('share')} ${pct()}%</span><b>${m0(sh.s)}</b></summary><div class="lns">${line(t('shareEarned'), sh.earned, 'pos')}${line(t('sharePending'), sh.pending)}${line(t('profitAfter'), sh.after, sh.after < 0 ? 'neg' : '')}</div></details>`;
+const OPENF = new Set(), fo = k => ` data-fold="${k}"${OPENF.has(k) ? ' open' : ''}`;
+document.addEventListener('toggle', e => { const d = e.target; if (d && d.dataset && d.dataset.fold) d.open ? OPENF.add(d.dataset.fold) : OPENF.delete(d.dataset.fold); }, true);
+const menu = (label, items, cls = '') => items ? `<details class="menu ${cls}"><summary class="btn2">${label}</summary><div class="pop">${items}</div></details>` : '';
+document.addEventListener('toggle', e => { const d = e.target; if (!d.matches || !d.matches('details.menu') || !d.open) return; d.classList.remove('r'); const r = d.querySelector('.pop').getBoundingClientRect(); if (r.right > innerWidth - 8) d.classList.add('r'); }, true);
+document.addEventListener('click', e => { document.querySelectorAll('details.menu[open]').forEach(d => { if (!d.contains(e.target) || e.target.closest('.pop a, .pop button')) d.open = false; }); });
 const showInstall = () => { try { if (localStorage.getItem('sonec-noinstall')) return false; } catch (_) {} return /iPhone|iPad|iPod/.test(navigator.userAgent) && !(navigator.standalone || matchMedia('(display-mode: standalone)').matches); };
 const unseen = b => b.comments.filter(c => c.author === 'client' && !c.seen).length;
 const setDot = s => { const d = $('#savedot'); if (d) d.textContent = s; };
@@ -30,7 +42,7 @@ function login() {
   <div class="err" role="alert">${esc(err)}</div><button class="primary" type="submit"${busy ? ' disabled' : ''}>${busy ? t('loading') : t('login')}</button>
   <div style="margin-top:16px">${S.langSeg()}</div></form></div>`;
 }
-const topbar = () => S.header(`<span id="savedot" class="savedot" aria-live="polite"></span><button class="ghost" data-logout style="min-height:40px;padding:6px 12px">${t('logout')}</button>`, `<span class="role">${t('contractor')}</span>`);
+const topbar = () => S.header(`<span id="savedot" class="savedot" aria-live="polite"></span><button class="ghost" data-logout style="min-height:40px;padding:6px 12px">${t('logout')}</button>`, `<span class="role">${esc(settings.contact_name || settings.company || t('contractor'))}</span>`);
 
 function home() {
   const shown = B.filter(b => pfilter === 'all' || stOf(b.project) === pfilter);
@@ -43,16 +55,15 @@ function home() {
   ${creating ? newForm() : ''}
   ${B.length ? `<div class="filters" role="group" aria-label="${t('status')}">${['all', ...STATUSES].map(s => `<button data-pf="${s}" class="${pfilter === s ? 'on' : ''}" aria-pressed="${pfilter === s}">${s === 'all' ? t('all') : t('st_' + s)} <span class="cnt">${s === 'all' ? B.length : count(s)}</span></button>`).join('')}</div>` : ''}
   ${showInstall() ? `<div class="card" style="display:flex;gap:12px;align-items:center;flex-wrap:wrap"><img src="icon-180.png" alt="" width="48" height="48" style="border-radius:11px"><div style="flex:1 1 220px"><b>${t('installT')}</b><p class="sub" style="margin:2px 0 0">${t('installS')}</p></div><button class="btn2" data-hideinstall>${t('hide')}</button></div>` : ''}
-  ${B.length ? `<div class="kpis">${kpi(t('contracts'), sum('tot'))}${kpi(t('collected'), sum('paid'))}${kpi(t('receivable'), sum('bal'))}${kpi(t('spent'), sum('spent'))}${kpi(t('profit'), sum('profit'), sum('profit') < 0 ? 'neg' : 'pos', t('profitSub'))}</div>
-  <div class="kpis">${(() => { const sh = cs.map(shareOf), tot = k => sh.reduce((x, y) => x + y[k], 0); return kpi(`${t('share')} ${pct()}%`, tot('s'), '', t('shareOf')) + kpi(t('shareEarned'), tot('earned'), 'pos', t('shareEarnedSub')) + kpi(t('sharePending'), tot('pending')) + kpi(t('profitAfter'), tot('after'), tot('after') < 0 ? 'neg' : ''); })()}</div>` : ''}
+  ${B.length ? `<section class="card sum"><div class="sts">${stat(t('receivable'), sum('bal'))}${stat(t('profit'), sum('profit'), sum('profit') < 0 ? 'neg' : 'pos')}</div><div class="lns">${line(t('contracts'), sum('tot'))}${line(t('collected'), sum('paid'))}${line(t('spent'), sum('spent'))}</div>${(() => { const sh = cs.map(shareOf), tot = k => sh.reduce((x, y) => x + y[k], 0); return shareFold({ s: tot('s'), earned: tot('earned'), pending: tot('pending'), after: tot('after') }); })()}</section>` : ''}
+  ${up.length ? `<div class="card week"><h2>${t('uiNeeds')}</h2><ul>${up.slice(0, 5).map(s => `<li><time style="${s.late ? 'color:#d0503a' : ''}">${new Date(s.due_date + 'T12:00').toLocaleDateString(S.L === 'en' ? 'en-US' : 'es-MX', { month: 'short', day: 'numeric' })}</time><div><b>${esc(s.title)}</b><small>${esc(s.pt)}</small></div></li>`).join('')}</ul></div>` : ''}
   ${leadsCard()}
   <div class="plist">${shown.length ? '' : (B.length ? `<p class="sub">${t('noneInStatus')}</p>` : '')}${shown.map((b, i) => { const c = cs[i], u = unseen(b); return `<button class="pcard" data-open="${b.project.id}">${u ? `<span class="badge" title="${t('unread')}">${u}</span>` : ''}
     <span class="who2">${esc(b.project.client_name || '·')}</span><h3>${esc(b.project.title || t('project'))}</h3><span class="pill st-${stOf(b.project)}">${t('st_' + stOf(b.project))}</span>
     <div class="bar"><i style="width:${c.pct}%"></i></div><small class="sub">${c.pct}% ${t('done')}</small>
-    <dl><dt>${t('contract')}</dt><dd>${money(c.tot)}</dd><dt>${t('collected')}</dt><dd>${money(c.paid)}</dd><dt>${t('spent')}</dt><dd>${money(c.spent)} ${t('of')} ${money(c.bud)}</dd><dt>${t('profit')}</dt><dd style="color:${c.profit < 0 ? '#b23a26' : 'var(--ok)'}">${money(c.profit)}</dd><dt>${t('share')} ${pct()}%</dt><dd><b>${money(shareOf(c).s)}</b></dd><dt>${t('shareEarned')}</dt><dd>${money(shareOf(c).earned)}</dd></dl></button>`; }).join('')}</div>
+    <dl><dt>${t('contract')}</dt><dd>${m0(c.tot)}</dd><dt>${t('receivable')}</dt><dd>${m0(c.bal)}</dd><dt>${t('profit')}</dt><dd style="color:${c.profit < 0 ? '#b23a26' : 'var(--ok)'}">${m0(c.profit)}</dd><dt>${t('share')} ${pct()}%</dt><dd>${m0(shareOf(c).s)}</dd></dl></button>`; }).join('')}</div>
   ${B.length ? '' : `<div class="card" style="text-align:center"><p class="sub">${t('none')}</p><button class="btn2" data-sample>${t('sampleProject')}</button></div>`}
-  <div class="cols" style="margin-top:18px"><div class="card week"><h2>${t('thisWeek')}</h2>${up.length ? `<ul>${up.map(s => `<li><time style="${s.late ? 'color:#d0503a' : ''}">${fdate(s.due_date)}</time><div><b>${esc(s.title)}</b><small>${esc(s.pt)}</small></div></li>`).join('')}</ul>` : `<p class="sub">${t('noUpcoming')}</p>`}</div>
-  <div class="card ed"><h2>${t('settings')}</h2><div class="grid2" style="margin-top:12px"><label>${t('company')}${fld('settings', settings, 'company')}</label><label>${t('cname')}${fld('settings', settings, 'contact_name')}</label><label>${t('phone')}${fld('settings', settings, 'phone', 'tel')}</label><label>${t('email')}${fld('settings', settings, 'email', 'email')}</label><label>${t('sharePct')}${fld('settings', { ...settings, share_pct: pct() }, 'share_pct', 'number')}</label></div><p class="hint">${t('shareHint')}</p></div></div>
+  <details class="card fold ed"${fo('settings')}><summary><h2>${t('uiCompanyData')}</h2></summary><div class="grid2" style="margin-top:12px"><label>${t('company')}${fld('settings', settings, 'company')}</label><label>${t('cname')}${fld('settings', settings, 'contact_name')}</label><label>${t('phone')}${fld('settings', settings, 'phone', 'tel')}</label><label>${t('email')}${fld('settings', settings, 'email', 'email')}</label><label>${t('sharePct')}${fld('settings', { ...settings, share_pct: pct() }, 'share_pct', 'number')}</label></div><p class="hint">${t('shareHint')}</p></details>
   ${B.length ? `<p style="text-align:center"><button class="btn2" data-sample>${t('sampleProject')}</button></p>` : ''}
   </div></main>`;
 }
@@ -123,9 +134,10 @@ function leadsCard() {
     ${stale ? `<p class="staleMsg">${t('staleMsg').replace('{d}', daysSince(l))}</p>` : ''}
     ${l.message ? `<p style="margin:6px 0 0;white-space:pre-wrap">${esc(l.message)}</p>` : ''}
     ${visitFor === l.id ? `<form id="visitf" class="visitf" data-id="${l.id}"><label>${t('visitWhen')}<input id="vf-at" type="datetime-local" required value="${localInput(l.visit_at)}"></label><label>${t('visitNote')} <small>(${t('optional')})</small><input id="vf-note" maxlength="200" value="${esc(l.visit_note || '')}" placeholder="${t('visitNotePh')}"></label><div class="acts"><button class="primary" type="submit">${t('visitSave')}</button><button class="btn2" type="button" data-visitcancel>${t('cancel')}</button>${l.visit_at ? `<button class="btn2" type="button" data-visitdel="${l.id}">${t('visitDel')}</button>` : ''}</div></form>` : ''}
-    <div class="acts">${stale && (wa || l.email) ? `<button class="primary" data-follow="${l.id}">${t('followBtn')}</button>` : ''}${up ? `<a class="btn2" href="${esc(gcal(l))}" target="_blank" rel="noopener">${t('visitCal')}</a>${wa || l.email ? `<button class="btn2" data-visitmsg="${l.id}">${t('visitTell')}</button>` : ''}` : ''}<button class="btn2" data-visit="${l.id}">${up ? t('visitChange') : t('visitBtn')}</button>
-    ${l.phone ? `<a class="btn2" href="tel:${esc(tel)}">${esc(l.phone)}</a><a class="btn2" href="https://wa.me/${wa.length === 10 ? '1' + wa : wa}" target="_blank" rel="noopener">WhatsApp</a>` : ''}${l.email ? `<a class="btn2" href="mailto:${esc(l.email)}">${esc(l.email)}</a>` : ''}
-    <button class="btn2" data-leadp="${l.id}">${t('leadToProject')}</button>${l.status === 'new' ? `<button class="btn2" data-leadst="${l.id}:contacted">${t('lead_contacted')}</button>` : ''}<button class="btn2" data-leadst="${l.id}:archived">${t('archive')}</button></div></div>`; }).join('')}</div>`;
+    <div class="acts">${stale && (wa || l.email) ? `<button class="primary" data-follow="${l.id}">${t('followBtn')}</button>` : ''}${up ? `<a class="btn2" href="${esc(gcal(l))}" target="_blank" rel="noopener">${t('visitCal')}</a>${wa || l.email ? `<button class="btn2" data-visitmsg="${l.id}">${t('visitTell')}</button>` : ''}` : ''}
+    ${menu(t('uiContact') + ' ▾', (l.phone ? `<a href="tel:${esc(tel)}">${t('call')} · ${esc(l.phone)}</a><a href="https://wa.me/${wa.length === 10 ? '1' + wa : wa}" target="_blank" rel="noopener">WhatsApp</a>` : '') + (l.email ? `<a href="mailto:${esc(l.email)}">${t('mail')} · ${esc(l.email)}</a>` : ''))}
+    <button class="${stale ? 'btn2' : 'primary'}" data-leadp="${l.id}">${t('leadToProject')}</button>
+    ${menu('<span aria-hidden="true">⋯</span><span class="sr">' + t('uiMore') + '</span>', `<button data-visit="${l.id}">${up ? t('visitChange') : t('visitBtn')}</button>${l.status === 'new' ? `<button data-leadst="${l.id}:contacted">${t('lead_contacted')}</button>` : ''}<button data-leadst="${l.id}:archived">${t('archive')}</button>`, 'r')}</div></div>`; }).join('')}</div>`;
 }
 function project() {
   const u = unseen(cur), p = cur.project;
@@ -154,9 +166,8 @@ function catBars(c) {
 function cDash() {
   const c = S.calc(cur);
   const banner = stOf(cur.project) === 'estimate_accepted' && !cur.documents.some(x => x.kind === 'contract' && x.status !== 'void') ? `<div class="card" style="border-color:var(--cu);display:flex;gap:12px;align-items:center;flex-wrap:wrap"><b style="flex:1 1 260px">${t('contractBanner')}</b><button class="primary" data-ctab="docs">${t('goDocs')}</button></div>` : '';
-  return banner + reviewCard(cur.project) + `<div class="kpis">${kpi(t('contract'), c.tot)}${kpi(t('collected'), c.paid)}${kpi(t('receivable'), c.bal)}${kpi(t('budget'), c.bud)}${kpi(t('spent'), c.spent, '', (c.bud ? Math.round(c.spent / c.bud * 100) : 0) + '% ' + t('of') + ' ' + t('budget').toLowerCase())}${kpi(t('left'), c.left, c.left < 0 ? 'neg' : '')}${kpi(t('profit'), c.profit, c.profit < 0 ? 'neg' : 'pos', t('profitSub'))}</div>
-  <div class="kpis">${(() => { const sh = shareOf(c); return kpi(`${t('share')} ${pct()}%`, sh.s, '', t('shareOf')) + kpi(t('shareEarned'), sh.earned, 'pos', t('shareEarnedSub')) + kpi(t('sharePending'), sh.pending) + kpi(t('profitAfter'), sh.after, sh.after < 0 ? 'neg' : ''); })()}</div>
-  <div class="cols">${buyForm()}${payForm()}</div>
+  return banner + reviewCard(cur.project) + `<section class="card sum"><div class="sts">${stat(t('receivable'), c.bal)}${stat(t('profit'), c.profit, c.profit < 0 ? 'neg' : 'pos')}</div><div class="lns">${line(t('contract'), c.tot)}${line(t('collected'), c.paid)}${line(t('budget'), c.bud)}${line(t('spent'), c.spent, '', (c.bud ? Math.round(c.spent / c.bud * 100) : 0) + '%')}${line(t('left'), c.left, c.left < 0 ? 'neg' : '')}</div>${shareFold(shareOf(c), 'share-p')}</section>
+  <div class="quick"><details class="card fold"${fo('exp')}><summary><h2>${t('uiAddExpense')}</h2></summary>${buyForm()}</details><details class="card fold"${fo('pay')}><summary><h2>${t('uiAddPay')}</h2></summary>${payForm()}</details></div>
   <div class="cols"><div class="card"><h2>${t('byCat')}</h2>${catBars(c)}</div><div class="card"><h2>${t('recent')}</h2>${expSorted().slice(0, 6).map(e => `<div class="mat"><div><b>${esc(e.description)}</b><small>${fdate(e.spent_on)} · ${esc(e.vendor)} · ${esc(catName(e.budget_id))}</small></div><span class="n">${money(e.amount)}</span></div>`).join('') || `<p class="sub">${t('none')}</p>`}</div></div>`;
 }
 const expSorted = () => cur.expenses.slice().sort((a, b) => String(b.spent_on).localeCompare(String(a.spent_on)));
@@ -269,9 +280,7 @@ function shareBar(p) {
   const msg = encodeURIComponent(t('shareMsg').replace('{n}', (p.client_name || '').replace(/\s*\(.*\)\s*$/, '').replace(/^familia\s+/i, '').split(' ')[0] || '').replace(/\s+,/, ',') + link);
   return `<div class="sharebar"><div class="sbtxt"><b>${t('shareT')}</b><small>${t('shareS')}</small></div>
   <div class="sbbtn"><button class="primary" data-copylink="${esc(link)}">${t('copy')}</button>
-  <a class="btn2" href="https://wa.me/${phone}?text=${msg}" target="_blank" rel="noopener">WhatsApp</a>
-  <a class="btn2" href="sms:${phone ? '+' + phone : ''}?&body=${msg}">${t('sms')}</a>
-  <a class="btn2" href="mailto:${esc(p.client_email || '')}?subject=${encodeURIComponent((S.L === 'es' ? 'Tu proyecto con Sonec: ' : 'Your project with Sonec: ') + (p.title || ''))}&body=${msg}">${t('mail')}</a>
+  ${menu((S.L === 'es' ? 'Enviar' : 'Send') + ' ▾', `<a href="https://wa.me/${phone}?text=${msg}" target="_blank" rel="noopener">WhatsApp</a><a href="sms:${phone ? '+' + phone : ''}?&body=${msg}">${t('sms')}</a><a href="mailto:${esc(p.client_email || '')}?subject=${encodeURIComponent((S.L === 'es' ? 'Tu proyecto con Sonec: ' : 'Your project with Sonec: ') + (p.title || ''))}&body=${msg}">${t('mail')}</a>`)}
   <a class="btn2" href="${esc(link)}" target="_blank" rel="noopener">${t('open')}</a></div>
   ${phone ? '' : `<small class="sbhint">${t('noPhone')}</small>`}</div>`;
 }

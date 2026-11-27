@@ -176,7 +176,7 @@ footer button{background:none;border:0;color:var(--mute);text-decoration:underli
 .secthead{display:flex;align-items:center;gap:12px;flex-wrap:wrap;margin:8px 0 14px}
 .secthead h1{font-size:clamp(26px,4vw,36px);margin-inline-end:auto}
 .week li{display:flex;gap:12px;padding:9px 0;border-bottom:1px solid var(--line)}
-.week li:last-child{border:0}.week time{flex:none;width:92px;color:var(--cu2);font-weight:600;font-size:15px}
+.week li:last-child{border:0}.week time{flex:none;width:64px;color:var(--cu2);font-weight:600;font-size:15px}
 .week ul{list-style:none;margin:0;padding:0}.week small{display:block;color:var(--mute)}
 .photos{display:grid;grid-template-columns:repeat(auto-fill,minmax(110px,1fr));gap:8px;margin-top:10px}
 .ph{padding:0;border:0;border-radius:10px;overflow:hidden;aspect-ratio:1;background:var(--line)}
@@ -319,3 +319,63 @@ body{padding-left:env(safe-area-inset-left);padding-right:env(safe-area-inset-ri
 .signf .chk{display:flex;gap:10px;align-items:flex-start;font-weight:400}
 .signf .chk input{width:22px;height:22px;flex:none;margin-top:2px}
 .sigimg{display:block;max-width:220px;height:auto;margin-top:6px;background:#fff;border-radius:6px}
+
+/* ---------- UI v2: calmer hierarchy, compact summaries, menus, scroll hints ---------- */
+h1,h2,h3{letter-spacing:-.01em}
+.card{border-radius:16px;padding:16px 18px;margin-bottom:14px}
+.card h2{font-size:21px;line-height:1.15}
+.sub{font-size:14px;line-height:1.45;margin:2px 0 12px}
+.secthead{margin:4px 0 12px}
+.kpi b{font-family:"Barlow Semi Condensed",Barlow,system-ui,sans-serif;font-size:24px}
+.kpis{gap:10px}
+
+/* status chips: one row that scrolls sideways instead of 3 wrapped rows */
+.filters{flex-wrap:nowrap;overflow-x:auto;scrollbar-width:none;padding-bottom:2px;margin-bottom:12px;-webkit-mask-image:linear-gradient(90deg,#000 88%,transparent);mask-image:linear-gradient(90deg,#000 88%,transparent)}
+.filters::-webkit-scrollbar{display:none}
+.filters button{flex:none;min-height:38px;padding:6px 12px;font-size:14px}
+
+/* tab bars: fade on the right edge so it is clear there is more to swipe */
+.cbar .wrap,.hnav{-webkit-mask-image:linear-gradient(90deg,#000 85%,transparent);mask-image:linear-gradient(90deg,#000 85%,transparent)}
+.cbar button{font-size:15px;padding:12px 10px}
+
+/* summary card: two big numbers, then quiet rows */
+.sum .sts{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:10px}
+.sum .st{background:var(--soft);border-radius:12px;padding:12px 14px}
+.sum .st small{display:block;color:var(--mute);font-size:13px;font-weight:600}
+.sum .st b{display:block;font:700 26px "Barlow Semi Condensed",Barlow,system-ui,sans-serif;white-space:nowrap;font-variant-numeric:tabular-nums}
+.sum .st em{display:block;font-style:normal;font-size:12px;color:var(--mute)}
+.st.pos b,.ln.pos b{color:var(--ok)}.st.neg b,.ln.neg b{color:#d0503a}
+.lns{display:flex;flex-direction:column}
+.ln{display:flex;justify-content:space-between;align-items:baseline;gap:12px;padding:9px 2px;border-bottom:1px solid var(--line);font-size:15px}
+.ln:last-child{border-bottom:0}
+.ln span{color:var(--mute)}.ln em{font-style:normal;font-size:13px}
+.ln b{font-variant-numeric:tabular-nums;white-space:nowrap}
+
+/* folding sections */
+details.fold>summary{list-style:none;cursor:pointer;display:flex;justify-content:space-between;align-items:center;gap:12px;min-height:44px}
+details.fold>summary::-webkit-details-marker{display:none}
+details.fold>summary::after{content:"";flex:none;width:9px;height:9px;border-right:2px solid var(--mute);border-bottom:2px solid var(--mute);transform:rotate(45deg);margin:0 4px 4px 0;transition:transform .2s}
+details.fold[open]>summary::after{transform:rotate(-135deg);margin:4px 4px 0 0}
+details.fold>summary h2{margin:0}
+.sum details.fold{margin-top:8px;padding-top:4px;border-top:1px solid var(--line)}
+.sum details.fold>summary span{color:var(--mute);font-size:15px}
+.sum details.fold>summary b{margin-inline-start:auto;font-variant-numeric:tabular-nums}
+.quick{display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:0 14px}
+.quick .card .card{border:0;padding:0;margin:8px 0 0;background:none}
+.quick .card .card>h2{display:none}
+
+/* dropdown menus for secondary actions */
+details.menu{position:relative;display:inline-block}
+details.menu>summary{list-style:none;cursor:pointer}
+details.menu>summary::-webkit-details-marker{display:none}
+details.menu .pop{position:absolute;z-index:40;top:calc(100% + 6px);left:0;min-width:220px;display:flex;flex-direction:column;background:var(--card);border:1px solid var(--line);border-radius:12px;box-shadow:0 10px 30px rgba(0,0,0,.18);padding:6px}
+details.menu.r .pop{left:auto;right:0}
+details.menu .pop a,details.menu .pop button{display:flex;align-items:center;min-height:44px;padding:10px 12px;border:0;background:none;border-radius:8px;font:inherit;font-weight:600;color:var(--ink);text-decoration:none;text-align:start;cursor:pointer;white-space:nowrap}
+details.menu .pop a:hover,details.menu .pop button:hover{background:var(--soft)}
+.co .acts{gap:8px}
+.sr{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
+
+/* project cards in the list */
+.pcard{padding:16px}
+.pcard h3{font-size:20px}
+.pcard dl{font-size:14px;gap:4px 10px}
