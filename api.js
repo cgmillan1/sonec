@@ -59,7 +59,10 @@
       if (!sb) return;
       const page = location.pathname.split('/').pop() || 'index.html';
       sb.rpc('log_error', { pg: page, m: String(msg || '').slice(0, 500), s: String(src || '').slice(0, 1500), u: navigator.userAgent.slice(0, 200) }).then(() => {}, () => {});
-    }
+    },
+    /* usage insights: which buttons and screens are used (no personal data) and the Suggestions box */
+    track(rows) { if (sb && rows && rows.length) sb.from('events').insert(rows).then(() => {}, () => {}); },
+    async feedback(row) { ok(await sb.from('feedback').insert(row)); }
   };
 
   /* catch what breaks on people's phones so it can be fixed before they call */
